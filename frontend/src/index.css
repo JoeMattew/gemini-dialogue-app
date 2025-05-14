@@ -1,0 +1,46 @@
+/* frontend/src/index.css */
+body {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f0f2f5; /* Light gray background for the page */
+}
+
+#root {
+  width: 100%;
+  max-width: 600px; /* Max width for the app content */
+  margin: 2rem auto; /* Centering and some margin */
+  padding: 1rem;     /* Padding inside the root */
+  text-align: center;
+}
+
+:root { /* CSS Variables for theming */
+    --dialogue-bg: #ffffff;
+    --dialogue-text: #213547;
+    --input-bg: #f8f9fa;
+    --input-border: #ced4da;
+    --button-bg: #007bff;
+    --button-text: white;
+    --response-area-bg: #e9ecef;
+    --error-text: #dc3545;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #1a1a1a; /* Darker page background */
+    }
+    :root {
+        --dialogue-bg: #2f2f2f;
+        --dialogue-text: rgba(255, 255, 255, 0.87);
+        --input-bg: #3a3a3a;
+        --input-border: #555555;
+        --button-bg: #0d6efd; /* A slightly different blue for dark mode */
+        --response-area-bg: #343a40;
+        --error-text: #ff6b6b; /* Lighter red for dark mode */
+    }
+}

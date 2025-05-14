@@ -1,0 +1,93 @@
+/* frontend/src/components/DialogueWindow.css */
+.dialogue-container-component {
+  background-color: var(--dialogue-bg);
+  color: var(--dialogue-text);
+  padding: 25px 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  /* max-width: 500px; /* Let #root control overall max-width */
+  margin: 0 auto; /* Centered within its parent */
+}
+
+.dialogue-container-component h1 {
+    font-size: 1.8em;
+    margin-bottom: 20px;
+}
+
+.dialogue-form {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* Make children take full width */
+  gap: 15px;
+}
+
+.dialogue-form textarea {
+  min-height: 80px;
+  padding: 12px;
+  border-radius: 5px;
+  border: 1px solid var(--input-border);
+  background-color: var(--input-bg);
+  color: var(--dialogue-text);
+  font-size: 1em;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.dialogue-form button {
+  padding: 10px 25px;
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 500;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.dialogue-form button:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.dialogue-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.response-area-component {
+  margin-top: 20px;
+  text-align: left;
+  width: 100%;
+  background-color: var(--response-area-bg);
+  padding: 15px;
+  border-radius: 5px;
+  min-height: 60px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+  box-sizing: border-box;
+}
+
+.response-area-component h2 {
+  margin-top: 0;
+  font-size: 1.1em;
+  color: var(--dialogue-text);
+  margin-bottom: 10px;
+}
+
+.response-text-component {
+  white-space: pre-wrap; /* Preserve line breaks from Gemini */
+  word-wrap: break-word;
+  font-size: 0.95em;
+  color: var(--dialogue-text);
+}
+
+.status-message { /* For loading or error messages */
+  margin-top: 10px;
+  font-size: 0.9em;
+}
+
+.error-message-component { /* Specific styling for error messages */
+  color: var(--error-text);
+  font-weight: bold;
+}
