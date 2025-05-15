@@ -1,42 +1,41 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* frontend/src/App.css */
+.esl-game-app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px;
+  background-color: var(--app-bg, #fff);
+  min-height: 95vh; /* Ensure it takes most of the screen */
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.game-header-title {
+  margin-bottom: 20px;
+  color: var(--text-color);
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.game-header-title h1 {
+    font-size: 2em;
+    margin: 0;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.players-panel {
+  display: flex;
+  justify-content: space-around; /* Or space-between */
+  width: 100%;
+  max-width: 700px; /* Max width for player info panel */
+  margin-bottom: 25px;
+  gap: 20px; /* Space between player cards */
 }
 
-.card {
-  padding: 2em;
-}
+/* The Board component is centered by its own container's margin: auto */
 
-.read-the-docs {
-  color: #888;
+.debug-info {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    font-size: 0.8em;
+    text-align: left;
 }

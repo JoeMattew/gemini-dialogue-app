@@ -1,0 +1,7 @@
+/* frontend/src/components/DiceDisplay.css */
+.dice-display-area {
+  font-size: 3.5em; /* Large dice icon */
+  line-height: 1;
+  color: #455a64; /* Darker dice color */
+  margin-bottom: 10px; /* Space below dice */
+}

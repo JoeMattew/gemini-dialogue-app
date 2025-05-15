@@ -1,0 +1,23 @@
+/* frontend/src/components/RollButton.css */
+.game-roll-button {
+  padding: 10px 20px;
+  font-size: 1em;
+  color: var(--button-primary-text, white);
+  background-color: var(--button-primary-bg, #007bff);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease-in-out, opacity 0.2s;
+  min-width: 180px;
+}
+
+.game-roll-button:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.game-roll-button:disabled {
+  background-color: #6c757d; /* Greyed out when disabled */
+  opacity: 0.7;
+  cursor: not-allowed;
+}

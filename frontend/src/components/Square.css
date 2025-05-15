@@ -1,0 +1,53 @@
+/* frontend/src/components/Square.css */
+.game-square {
+  border: 1px solid var(--border-color-dark, #999);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  background-color: var(--square-bg, #f8f9fa);
+  position: relative;
+  padding: 3px;
+  overflow: hidden;
+  /* Actual size will be set by the CSS Grid in Board.css */
+}
+
+.game-square.go { background-color: var(--square-bg-go, lightgreen); }
+.game-square.corner { background-color: var(--square-bg-corner, #e9ecef); }
+/* Add more types like .chance, .property-color later if needed */
+
+.square-id-display {
+  font-size: 0.65em; /* Smaller ID */
+  color: #444;
+  align-self: flex-start;
+  font-weight: bold;
+  padding: 1px 2px; /* Slight padding for ID */
+  line-height: 1;
+}
+
+.player-tokens-on-square {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 18px; /* Adjusted for smaller tokens */
+  flex-wrap: wrap;
+}
+
+/* Player Token GFX - graphical representation of player on a square */
+.player-token-gfx {
+  width: 15px; /* Smaller tokens */
+  height: 15px;
+  border-radius: 50%;
+  border: 1px solid black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6em; /* Text inside token if any */
+  font-weight: bold;
+  color: white;
+  box-shadow: 0px 1px 2px rgba(0,0,0,0.4);
+  /* Background color will be set via inline style */
+}
