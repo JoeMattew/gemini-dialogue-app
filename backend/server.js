@@ -10,7 +10,7 @@ const app = express();
 const allowedOrigins = [
     'http://localhost:5173', // Vite default dev port for frontend
     // Add your deployed frontend URL here later for production, e.g.:
-    // 'https://your-frontend-app.netlify.app'
+    'https://gemini-dialogue-backend.onrender.com'
 ];
 
 app.use(cors({
@@ -69,7 +69,7 @@ app.post('/api/ask-gemini', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
     console.log(`Backend server listening on http://localhost:${PORT}`);
     console.log(GEMINI_API_KEY ? "Gemini API Key loaded successfully." : "Gemini API Key NOT FOUND in .env file!");
