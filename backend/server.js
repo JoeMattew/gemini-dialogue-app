@@ -8,20 +8,19 @@ const app = express();
 
 // --- CORS Configuration ---
 const allowedOrigins = [
-    'http://localhost:5173', // Vite default dev port for frontend
-    // Add your deployed frontend URL here later for production, e.g.:
-    'https://gemini-dialogue-backend.onrender.com'
+    'http://localhost:5173', // For local Vite frontend development
+    'https://gemini-dialogue-app.netlify.app' // Your deployed Netlify frontend URL
 ];
 
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1) {
-            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-            return callback(new Error(msg), false);
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            // Add a log to see what origin is being blocked
+            console.warn(`CORS: Origin ${origin} not allowed. Allowed origins: ${allowedOrigins.join(', ')}`);
+            callback(new Error(`Origin ${origin} not allowed by CORS policy`));
         }
-        return callback(null, true);
     }
 }));
 // --- End CORS Configuration ---

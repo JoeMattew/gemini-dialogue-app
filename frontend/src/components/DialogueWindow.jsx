@@ -11,8 +11,8 @@ const DialogueWindow = () => {
     // For production, replace with your deployed backend URL.
     // For local dev with Vite proxy, base URL is effectively empty for '/api' calls.
     const API_BASE_URL = import.meta.env.DEV
-        ? '' // Vite proxy will handle /api in development
-        : 'https://gemini-dialogue-backend.onrender.com'; // e.g., https://my-gemini-backend.onrender.com
+    ? '' // Vite proxy will handle /api in development
+    : 'https://gemini-dialogue-backend.onrender.com'; // Your deployed Render backend URL// e.g., https://my-gemini-backend.onrender.com
 
     const handleSubmit = async (e) => {
         e.preventDefault(); // Good practice for forms
