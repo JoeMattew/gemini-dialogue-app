@@ -1,0 +1,108 @@
+/* frontend/src/components/GameSetup.css */
+.game-setup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 15px;
+}
+
+.game-setup-modal {
+  background-color: var(--dialogue-bg, white);
+  color: var(--dialogue-text, #333);
+  padding: 25px 35px;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 550px;
+  text-align: center;
+}
+
+.game-setup-modal h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+.game-setup-modal p {
+    margin-bottom: 25px;
+    font-size: 0.95em;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.form-group input[type="text"],
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--input-border, #ccc);
+  background-color: var(--input-bg, #f8f9fa);
+  color: var(--dialogue-text, #333);
+  border-radius: 5px;
+  box-sizing: border-box;
+  font-size: 1em;
+}
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.8em;
+    color: #6c757d;
+}
+
+.form-group input[type="text"]:focus,
+.form-group select:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.form-buttons {
+    margin-top: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-buttons button {
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.05em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+}
+
+.form-buttons .start-button {
+  background-color: #28a745; /* Green */
+}
+.form-buttons .start-button:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.form-buttons button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: var(--error-text, red);
+  margin-bottom: 15px;
+  font-size: 0.9em;
+  font-weight: bold;
+}
