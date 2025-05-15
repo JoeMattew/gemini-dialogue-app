@@ -45,7 +45,7 @@ const model = genAI.getGenerativeModel({
 });
 
 // Define an API endpoint
-app.post('/api/ask-gemini', async (req, res) => {
+app.post('/api/generate-esl-questions', async (req, res) => {
     try {
         const { userPrompt } = req.body; // Get prompt from request body
 
