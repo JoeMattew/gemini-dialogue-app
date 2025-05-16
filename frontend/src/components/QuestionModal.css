@@ -1,0 +1,71 @@
+/* frontend/src/components/QuestionModal.css */
+.question-modal-overlay-game {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75); /* Darker overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050; /* Ensure it's above other game elements */
+  padding: 15px;
+}
+
+.question-modal-content-game {
+  background-color: var(--dialogue-bg, white);
+  color: var(--dialogue-text, #333);
+  padding: 30px 40px; /* More padding */
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 650px; /* Slightly wider for questions */
+  text-align: center;
+}
+
+.question-modal-content-game h3 {
+  margin-top: 0;
+  color: var(--button-primary-bg, #007bff); /* Using a theme color */
+  margin-bottom: 20px; /* More space */
+  font-size: 1.5em;
+}
+
+.question-text-game {
+  font-size: 1.6em; /* Larger question text */
+  margin-bottom: 30px; /* More space */
+  line-height: 1.6;
+  min-height: 60px; /* Ensure some space even for short questions */
+}
+
+.answer-buttons-game {
+  display: flex;
+  justify-content: center; /* Center buttons */
+  gap: 25px; /* More space between buttons */
+}
+
+.answer-buttons-game button {
+  padding: 12px 25px; /* Larger buttons */
+  font-size: 1.1em;
+  font-weight: 500;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  min-width: 120px;
+}
+
+.answer-buttons-game button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+.answer-buttons-game .correct-btn-game {
+  background-color: #28a745; /* Green */
+  color: white;
+}
+
+.answer-buttons-game .incorrect-btn-game {
+  background-color: #dc3545; /* Red */
+  color: white;
+}
