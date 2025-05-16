@@ -3,7 +3,8 @@ import React, { useState, useCallback, useEffect } from 'react';
 import Player from './components/Player';
 import Board from './components/Board';
 import GameSetup from './components/GameSetup';
-import QuestionModal from './components/QuestionModal'; // Import the new modal
+import GameControls from './components/GameControls'; // Import GameControls
+// QuestionModal is replaced by CentralQuestionDisplay which is inside Board
 import './App.css';
 
 const BOARD_CONFIG = {
@@ -13,98 +14,69 @@ const BOARD_CONFIG = {
 };
 
 const initialPlayersData = [
-  { id: 1, name: 'Player 1', color: 'var(--player-1-color, blue)', pos: 1, currentDice: null },
-  { id: 2, name: 'Player 2', color: 'var(--player-2-color, red)', pos: 1, currentDice: null },
+  { id: 1, name: 'Team 1', color: 'var(--player-1-color, #3498db)', pos: 1 },
+  { id: 2, name: 'Team 2', color: 'var(--player-2-color, #e74c3c)', pos: 1 },
 ];
 
 function App() {
-  const [gamePhase, setGamePhase] = useState('setup'); // 'setup', 'questioning', 'rolling', 'moving', 'gameOver'
+  const [gamePhase, setGamePhase] = useState('setup');
   const [players, setPlayers] = useState(initialPlayersData);
   const [activePlayerId, setActivePlayerId] = useState(1);
-  const [currentOverallDiceRoll, setCurrentOverallDiceRoll] = useState(null);
+  const [currentDiceRollValue, setCurrentDiceRollValue] = useState(null);
   const [eslQuestions, setEslQuestions] = useState([]);
-  const [gameSettings, setGameSettings] = useState(null);
-  const [currentEslQuestionObj, setCurrentEslQuestionObj] = useState(null); // To store the current question object {text: "..."}
-  const [questionIndex, setQuestionIndex] = useState(0); // To cycle through questions
+  const [gameSettings, setGameSettings] = useState(null); // Kept for potential future use or reference
+  const [currentEslQuestionText, setCurrentEslQuestionText] = useState('');
+  const [questionIndex, setQuestionIndex] = useState(0);
 
   const handleQuestionsAndSettingsReady = (fetchedQuestions, settings) => {
-    console.log("[App.jsx] Questions and settings received:", { fetchedQuestions, settings });
-    setEslQuestions(fetchedQuestions); // Store all fetched questions
-    setGameSettings(settings);
-    setPlayers(initialPlayersData);
+    setEslQuestions(fetchedQuestions);
+    setGameSettings(settings); // Store settings
+    setPlayers(initialPlayersData); // Reset players
     setActivePlayerId(1);
-    setCurrentOverallDiceRoll(null);
-    setQuestionIndex(0); // Reset question index
-
-    // Start the game by asking the first player a question
-    setGamePhase('questioning');
-    console.log("[App.jsx] Game phase changed to 'questioning'.");
+    setCurrentDiceRollValue(null);
+    setQuestionIndex(0);
+    setGamePhase('questioning'); // Start with a question for Player 1
+    console.log("[App.jsx] Setup complete. Phase: 'questioning'. Questions loaded:", fetchedQuestions.length);
   };
 
-  // Effect to set the current question when phase is 'questioning' or activePlayerId changes
   useEffect(() => {
     if (gamePhase === 'questioning' && eslQuestions.length > 0) {
+      let qIndexToShow = questionIndex;
       if (questionIndex >= eslQuestions.length) {
-        // Optional: Reshuffle or indicate all questions used
-        console.warn("[App.jsx] All questions used. Recycling questions.");
-        setQuestionIndex(0); // Loop back to the first question
-        setCurrentEslQuestionObj(eslQuestions[0]);
-      } else {
-        setCurrentEslQuestionObj(eslQuestions[questionIndex]);
+        console.warn("[App.jsx] All questions used. Recycling.");
+        qIndexToShow = 0;
+        setQuestionIndex(0);
       }
-      console.log(`[App.jsx] Displaying question #${questionIndex + 1} for Player ${activePlayerId}: "${eslQuestions[questionIndex]?.text}"`);
+      setCurrentEslQuestionText(eslQuestions[qIndexToShow]?.text || "No questions loaded or end of list.");
+      console.log(`[App.jsx] Displaying question #${qIndexToShow + 1} for Team ${activePlayerId}`);
     } else if (gamePhase !== 'questioning') {
-      setCurrentEslQuestionObj(null); // Clear question if not in questioning phase
+      setCurrentEslQuestionText(''); // Clear question text when not in questioning phase
     }
   }, [gamePhase, activePlayerId, eslQuestions, questionIndex]);
 
-
-  const handleQuestionAnswered = (isCorrect) => {
-    console.log(`[App.jsx] Player ${activePlayerId} answered. Correct: ${isCorrect}`);
-    setCurrentEslQuestionObj(null); // Hide modal
-
-    if (isCorrect) {
-      setGamePhase('rolling'); // Allow current player to roll
-      console.log(`[App.jsx] Answer correct. Player ${activePlayerId} can roll. Phase: 'rolling'`);
-    } else {
-      // Penalty: Skip turn, move to next player's question phase
-      console.log(`[App.jsx] Answer incorrect. Skipping turn for Player ${activePlayerId}.`);
-      const nextPlayerId = activePlayerId === 1 ? 2 : 1;
-      setActivePlayerId(nextPlayerId);
-      setQuestionIndex(prev => prev + 1); // Move to next question for next player
-      setGamePhase('questioning'); // Ask next player a question
-    }
+  // Called by CentralQuestionDisplay's "Continue" button
+  const handleQuestionContinue = () => {
+    console.log(`[App.jsx] Question acknowledged by Team ${activePlayerId}. Phase: 'rolling'`);
+    setCurrentEslQuestionText(''); // Clear question
+    setGamePhase('rolling'); // Allow current player to roll
   };
 
   const handleRollDice = useCallback(() => {
     if (gamePhase !== 'rolling') return;
 
-    console.log(`[App.jsx] Player ${activePlayerId} is rolling dice.`);
+    console.log(`[App.jsx] Team ${activePlayerId} rolling.`);
     setGamePhase('moving');
     const rollValue = Math.floor(Math.random() * 6) + 1;
-    setCurrentOverallDiceRoll(rollValue);
-    setPlayers(prevPlayers =>
-      prevPlayers.map(p =>
-        p.id === activePlayerId ? { ...p, currentDice: rollValue } : p
-      )
-    );
+    setCurrentDiceRollValue(rollValue); // For the bottom dice display
 
     setTimeout(() => {
-      console.log(`[App.jsx] Player ${activePlayerId} rolled ${rollValue}. Moving player.`);
-      let gameIsOver = false;
+      console.log(`[App.jsx] Team ${activePlayerId} rolled ${rollValue}. Moving.`);
       setPlayers(prevPlayers =>
         prevPlayers.map(p => {
           if (p.id === activePlayerId) {
             let newPos = p.pos + rollValue;
             if (newPos > BOARD_CONFIG.TOTAL_SQUARES) {
-              newPos = (newPos % BOARD_CONFIG.TOTAL_SQUARES);
-              if (newPos === 0) newPos = BOARD_CONFIG.TOTAL_SQUARES;
-              // You might add "pass Go" logic here if needed
-            }
-            if (newPos === BOARD_CONFIG.TOTAL_SQUARES) { // Example win condition
-              // alert(`Player ${p.name} wins!`);
-              // gameIsOver = true;
-              // setGamePhase('gameOver');
+              newPos = (newPos % BOARD_CONFIG.TOTAL_SQUARES) || BOARD_CONFIG.TOTAL_SQUARES;
             }
             return { ...p, pos: newPos };
           }
@@ -112,63 +84,51 @@ function App() {
         })
       );
 
-      if (!gameIsOver) { // Only proceed if game is not over
-        const nextPlayerId = activePlayerId === 1 ? 2 : 1;
-        setActivePlayerId(nextPlayerId);
-        setCurrentOverallDiceRoll(null);
-        setQuestionIndex(prev => prev + 1); // Prepare next question index
-        setGamePhase('questioning'); // Next player's turn starts with a question
-        console.log(`[App.jsx] Turn ended for Player ${activePlayerId}. Next player: ${nextPlayerId}. Phase: 'questioning'.`);
-      }
-    }, 700);
-  }, [activePlayerId, gamePhase]); // Keep gamePhase here for the initial check
+      const nextPlayerId = activePlayerId === 1 ? 2 : 1;
+      setActivePlayerId(nextPlayerId);
+      setCurrentDiceRollValue(null); // Clear dice for next turn
+      setQuestionIndex(prev => prev + 1); // Prepare for next question
+      setGamePhase('questioning'); // Next turn starts with a question
+      console.log(`[App.jsx] Turn ended. Next player: Team ${nextPlayerId}. Phase: 'questioning'.`);
+    }, 700); // Movement delay
+  }, [activePlayerId, gamePhase]);
 
-  // --- Conditional Rendering ---
 
   if (gamePhase === 'setup') {
     return <GameSetup onQuestionsAndSettingsReady={handleQuestionsAndSettingsReady} />;
   }
 
-  // Main game layout (board, players, and potentially question modal overlayed)
+  const activePlayerForDisplay = players.find(p => p.id === activePlayerId);
+
   return (
-    <div className="esl-game-app-container">
-      {gamePhase === 'questioning' && currentEslQuestionObj && (
-        <QuestionModal
-          questionText={currentEslQuestionObj.text}
-          playerName={players.find(p => p.id === activePlayerId)?.name || 'Player'}
-          onAnswer={handleQuestionAnswered}
-        />
-      )}
-
-      <header className="game-header-title">
-        <h1>ESL Adventure Board Game</h1>
-        {gameSettings && (
-          <p className="game-settings-display">
-            Topic: {gameSettings.topic} | Level: {gameSettings.level} | Focus: {gameSettings.structure}
-          </p>
-        )}
-      </header>
-
-      <div className="players-panel">
+    <div className="esl-game-app-layout"> {/* Updated main class name */}
+      <div className="top-player-stats-panel">
         {players.map(player => (
           <Player
             key={player.id}
-            name={player.name}
+            teamName={player.name} // Changed from name to teamName
             color={player.color}
-            diceValue={player.currentDice}
-            isActive={player.id === activePlayerId && (gamePhase === 'rolling' || gamePhase === 'questioning')}
-            currentSquare={player.pos}
+            isActive={player.id === activePlayerId && gamePhase !== 'moving' && gamePhase !== 'setup'}
           />
         ))}
       </div>
 
-      <Board
-        players={players}
+      <div className="board-wrapper-main"> {/* Wrapper to control board width */}
+        <Board
+          players={players}
+          config={BOARD_CONFIG}
+          showQuestionInBoard={gamePhase === 'questioning'}
+          currentQuestionText={currentEslQuestionText}
+          activePlayerNameForQuestion={activePlayerForDisplay?.name || ''}
+          onQuestionContinue={handleQuestionContinue}
+        />
+      </div>
+
+      <GameControls
+        currentDiceRoll={currentDiceRollValue}
         onRollDice={handleRollDice}
-        currentDiceRoll={currentOverallDiceRoll}
-        activePlayerId={activePlayerId}
-        isRollDisabled={gamePhase !== 'rolling'} // Button enabled only in 'rolling' phase
-        config={BOARD_CONFIG}
+        activePlayerName={activePlayerForDisplay?.name || ''}
+        isRollDisabled={gamePhase !== 'rolling'}
       />
     </div>
   );

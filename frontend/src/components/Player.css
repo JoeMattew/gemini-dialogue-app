@@ -1,36 +1,25 @@
 /* frontend/src/components/Player.css */
-.player-info {
-  padding: 12px 15px; /* Adjusted padding */
-  border-width: 3px;
+.player-stats-window {
+  padding: 10px 15px;
+  border-width: 2px;
   border-style: solid;
-  border-radius: 8px;
+  border-radius: 6px;
   text-align: center;
-  background-color: var(--dialogue-bg, #fff); /* Using existing CSS var */
-  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-  min-width: 160px; /* Slightly smaller min-width */
+  background-color: var(--dialogue-bg, #fff);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  min-width: 120px;
+  max-width: 160px; /* Control max width for smaller look */
   transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
-.player-info.active {
-  /* Border color set via inline style based on player's color */
-  box-shadow: 0 0 12px 2px var(--border-color-active, rgba(0, 123, 255, 0.4));
+.player-stats-window.active {
+  box-shadow: 0 0 8px 1px var(--border-color-active, rgba(0, 123, 255, 0.3));
+  /* Active border color set via inline style */
 }
 
-.player-info h2 {
-  margin-top: 0;
-  margin-bottom: 6px; /* Reduced margin */
-  font-size: 1.3em; /* Adjusted size */
-  color: var(--dialogue-text, #333); /* Using existing CSS var */
-}
-
-.player-info .player-score,
-.player-info .player-position {
-  font-size: 0.95em; /* Adjusted size */
-  color: #555;
-  margin: 4px 0; /* Reduced margin */
-}
-
-.player-info .player-score {
-    font-weight: bold;
-    font-size: 1.1em; /* Adjusted size */
+.player-stats-window h3 {
+  margin: 0;
+  font-size: 1.1em;
+  color: var(--dialogue-text, #333);
+  font-weight: 600;
 }

@@ -3,37 +3,36 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  margin: 20px 0;
+  width: 100%; /* Board itself will take full width of its wrapper from App.css */
 }
 
 .board-grid-layout {
   display: grid;
-  /* CSS variables for grid dimensions are set inline on this element */
-  grid-template-columns: repeat(var(--grid-cols), var(--square-cell-size, 45px));
-  grid-template-rows: repeat(var(--grid-rows), var(--square-cell-size, 45px));
-  gap: 1px; /* Small gap between squares */
-  padding: 10px; /* Padding around the grid of squares */
-  background-color: #b0bec5; /* Color for the gaps and padding area */
-  border: 3px solid #78909c;
+  grid-template-columns: repeat(var(--grid-cols), minmax(30px, 1fr)); /* Responsive squares, min 30px */
+  grid-template-rows: repeat(var(--grid-rows), minmax(30px, 1fr)); /* Responsive squares, min 30px */
+  aspect-ratio: var(--grid-cols) / var(--grid-rows); /* Maintain aspect ratio */
+  width: 100%; /* Takes width from .board-wrapper in App.css */
+  max-width: 700px; /* Prevent squares from becoming excessively large */
+  gap: 1px;
+  padding: 6px; /* Slightly smaller padding */
+  background-color: #b0bec5; /* Gaps/border area color */
+  border: 2px solid #78909c;
   border-radius: 5px;
-  position: relative; /* For positioning the center controls */
+  position: relative; /* For positioning the center content */
+  box-sizing: border-box;
 }
 
-.board-center-controls {
-  /* Positioned in the center of the grid using grid spanning */
-  grid-column-start: 2; /* Start after the first column of squares */
-  grid-column-end: calc(var(--grid-cols)); /* End before the last column of squares */
-  grid-row-start: 2;    /* Start after the first row of squares */
-  grid-row-end: calc(var(--grid-rows));   /* End before the last row of squares */
-
-  background-color: #eceff1; /* Light background for center area */
-  border: 2px dashed #90a4ae;
-  border-radius: 5px;
-  display: flex;
-  flex-direction: column;
+.board-center-content-area { /* Renamed */
+  grid-column-start: 2;
+  grid-column-end: calc(var(--grid-cols)); /* Span cols 2 to H_GRID_CELLS-1 */
+  grid-row-start: 2;
+  grid-row-end: calc(var(--grid-rows));   /* Span rows 2 to V_GRID_CELLS-1 */
+  
+  /* Styling for the area itself, CentralQuestionDisplay will fill it */
+  background-color: #cfd8dc; /* Default background if no question */
+  border-radius: 3px; /* Slight rounding for inner area */
+  display: flex; /* To help center CentralQuestionDisplay if it doesn't fill */
   align-items: center;
   justify-content: center;
-  padding: 15px;
-  gap: 15px; /* Space between dice and button */
+  overflow: hidden; /* Clip content if necessary */
 }

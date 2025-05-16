@@ -1,53 +1,32 @@
 /* frontend/src/App.css */
-.esl-game-app-container {
+.esl-game-app-layout { /* Changed class name */
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: center; /* Center children like board-wrapper and controls */
   padding: 15px;
-  background-color: var(--app-bg, #fff);
-  min-height: 95vh; /* Ensure it takes most of the screen */
-  border-radius: 10px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  background-color: var(--app-bg, #fff); /* Use CSS var if defined in index.css */
+  min-height: 95vh; /* Make app take most of screen height */
+  box-sizing: border-box;
 }
 
-.game-header-title {
-  margin-bottom: 20px;
-  color: var(--text-color);
-}
-
-.game-header-title h1 {
-    font-size: 2em;
-    margin: 0;
-}
-
-.players-panel {
+.top-player-stats-panel { /* New class for top player panels */
   display: flex;
-  justify-content: space-around; /* Or space-between */
+  justify-content: space-between;
   width: 100%;
-  max-width: 700px; /* Max width for player info panel */
-  margin-bottom: 25px;
-  gap: 20px; /* Space between player cards */
+  max-width: 600px; /* Limit width of player panel container */
+  margin-bottom: 20px; /* Space below player panels */
+  padding: 0 10px; /* Optional padding */
+  box-sizing: border-box;
+  gap: 20px; /* Space between player stat boxes */
 }
 
-/* The Board component is centered by its own container's margin: auto */
-
-.debug-info {
-    margin-top: 20px;
-    padding: 10px;
-    background-color: #f0f0f0;
-    border: 1px solid #ddd;
-    font-size: 0.8em;
-    text-align: left;
+.board-wrapper-main { /* Wrapper to control board width */
+  width: 80%; /* Board area takes 80% of this wrapper's parent width */
+  max-width: 750px; /* Max pixel width for the board area */
+  margin-bottom: 25px; /* Space below board */
+  display: flex; /* Helps if board-area-container needs centering inside */
+  justify-content: center;
 }
 
-.game-settings-display {
-  font-size: 0.85em;
-  color: #555;
-  margin-top: 5px;
-  margin-bottom: 15px; /* Added margin below settings */
-  background-color: #f9f9f9;
-  padding: 5px 10px;
-  border-radius: 4px;
-  border: 1px solid #eee;
-  display: inline-block; /* To make padding and border work well */
-}
+/* GameControls component already has its own container with styles */
+/* .game-controls-bottom-panel in GameControls.css handles its layout */

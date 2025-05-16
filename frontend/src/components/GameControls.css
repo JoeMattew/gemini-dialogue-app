@@ -1,0 +1,16 @@
+/* frontend/src/components/GameControls.css */
+.game-controls-bottom-panel { /* Renamed class */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding: 15px 0; /* Padding top/bottom, no side padding needed if centered by App.css */
+  margin-top: 15px; /* Space above the controls panel */
+  width: 100%; /* Take full width for centering its content */
+}
+
+/* Individual styles for DiceDisplay and RollButton are in their own CSS files */
+/* You might add specific margin/padding to them here if needed for this panel */
+.game-controls-bottom-panel .dice-display-area { /* Example of targeting if needed */
+    margin-bottom: 5px;
+}
