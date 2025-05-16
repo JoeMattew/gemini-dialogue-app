@@ -5,7 +5,7 @@ import MultipleChoiceQuestion from './MultipleChoiceQuestion';
 import './Board.css';
 
 // getSquareStyle function remains the same
-const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => {
+const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => { /* ... as before ... */
   let r, c;
   const top_end_id = H_GRID_CELLS;
   const right_side_length = V_GRID_CELLS - 1;
@@ -23,17 +23,13 @@ const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => {
 const Board = ({
   players,
   config,
-  // Props for question/consequence display
-  showQuestionArea, // True if any content (question or consequence) should be in center
-  currentQuestionObj, // The full question {text, options} - null if showing consequence
-  activePlayerNameForQuestion,
+  boardCenterContent, // Unified prop: { type: 'question'/'consequence', content: {...}, forPlayerName: "..." } or null
   onAnswerSelect,
-  isDisplayingConsequence, // True if App wants MCQ to show a consequence
-  consequenceToShow,       // The {consequenceText, move} object
-  disableOptionsDuringConsequence // True to disable MCQ option buttons
+  disableOptions      // To disable MCQ option buttons
 }) => {
   const squaresCmp = [];
   for (let i = 1; i <= config.TOTAL_SQUARES; i++) {
+    // ... (square generation logic remains the same) ...
     const style = getSquareStyle(i, config.H_GRID_CELLS, config.V_GRID_CELLS);
     let type = '';
     if (i === 1) type = 'go';
@@ -43,7 +39,6 @@ const Board = ({
       type = 'corner';
     }
     if (i===1) type = 'go';
-
     squaresCmp.push(
       <Square key={i} id={i} style={style} type={type}>
         {players.map(p => p.pos === i && (
@@ -53,6 +48,22 @@ const Board = ({
         ))}
       </Square>
     );
+  }
+
+  let contentForMCQ = null;
+  let consequenceData = null;
+  let displayPlayerName = '';
+  let showMCQPlaceholder = true;
+
+  if (boardCenterContent) {
+    displayPlayerName = boardCenterContent.forPlayerName;
+    if (boardCenterContent.type === 'question') {
+      contentForMCQ = boardCenterContent.content; // This is the full question object
+      showMCQPlaceholder = false;
+    } else if (boardCenterContent.type === 'consequence') {
+      consequenceData = boardCenterContent.content; // This is { consequenceText, move }
+      showMCQPlaceholder = false;
+    }
   }
 
   return (
@@ -66,19 +77,19 @@ const Board = ({
       >
         {squaresCmp}
         <div className="board-center-content-area">
-          {showQuestionArea ? (
-            <MultipleChoiceQuestion
-              questionObj={currentQuestionObj} // Will be null if only showing consequence
-              playerName={activePlayerNameForQuestion}
-              onAnswerSelect={onAnswerSelect}
-              isDisplayingConsequence={isDisplayingConsequence}
-              consequenceToShow={consequenceToShow}
-              disableOptions={disableOptionsDuringConsequence}
-            />
-          ) : (
+          {showMCQPlaceholder ? (
             <div className="mcq-area-game placeholder-mcq">
-                <p>Roll the dice!</p>
+              <p>Roll the dice!</p>
             </div>
+          ) : (
+            <MultipleChoiceQuestion
+              questionObj={contentForMCQ} // Will be null if showing consequence
+              playerName={displayPlayerName}
+              onAnswerSelect={onAnswerSelect}
+              isDisplayingConsequence={!!consequenceData} // True if consequenceData is not null
+              consequenceToShow={consequenceData}
+              disableOptions={disableOptions || !!consequenceData} // Disable if explicitly told or if showing consequence
+            />
           )}
         </div>
       </div>

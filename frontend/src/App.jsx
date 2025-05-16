@@ -11,19 +11,25 @@ const initialPlayersData = [
   { id: 1, name: 'Team 1', color: 'var(--player-1-color, #3498db)', pos: 1 },
   { id: 2, name: 'Team 2', color: 'var(--player-2-color, #e74c3c)', pos: 1 },
 ];
-// CONSEQUENCE_VISIBILITY_DURATION is no longer needed here, as user action (next player's roll) clears it.
+
+// No global CONSEQUENCE_DISPLAY_DURATION, MCQ will handle its own display if needed for animation.
 
 function App() {
-  // Game Phases: 'setup', 'rolling', 'diceMoving', 'questioning', 'showingConsequenceThenMoving', 'turnEnded', 'gameOver'
+  // Game Phases: 'setup', 'rolling', 'diceMoving', 'questioning', 'consequenceMoving'
   const [gamePhase, setGamePhase] = useState('setup');
   const [players, setPlayers] = useState(initialPlayersData);
   const [activePlayerId, setActivePlayerId] = useState(1);
   const [currentDiceRollValue, setCurrentDiceRollValue] = useState(null);
   const [eslQuestions, setEslQuestions] = useState([]);
   const [gameSettings, setGameSettings] = useState(null);
-  const [currentQuestionObj, setCurrentQuestionObj] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [currentConsequence, setCurrentConsequence] = useState(null); // Stores { consequenceText, move }
+  
+  // Unified state for what's shown in the board's center
+  // type: 'question', 'consequence', or null (for placeholder like "Roll dice")
+  // content: the question object or consequence object
+  // forPlayerName: name of the player this content relates to
+  const [boardCenterContent, setBoardCenterContent] = useState(null);
+
 
   const handleQuestionsAndSettingsReady = (fetchedQuestions, settings) => {
     setEslQuestions(fetchedQuestions);
@@ -32,36 +38,39 @@ function App() {
     setActivePlayerId(1);
     setCurrentDiceRollValue(null);
     setQuestionIndex(0);
-    setCurrentConsequence(null);
-    setGamePhase('rolling'); // Player 1 starts by being able to roll
+    setBoardCenterContent(null); // Clear center content
+    setGamePhase('rolling');
     console.log("[App.jsx] Setup complete. Phase: 'rolling'.");
   };
 
-  // Effect to select question for 'questioning' phase
+  // This useEffect now primarily manages setting the question when it's time
   useEffect(() => {
-    if (gamePhase === 'questioning' && eslQuestions.length > 0) {
+    const activePlayer = players.find(p => p.id === activePlayerId);
+    if (gamePhase === 'questioning' && eslQuestions.length > 0 && activePlayer) {
       let qIndexToShow = questionIndex;
       if (qIndexToShow >= eslQuestions.length) {
         console.warn("[App.jsx] All questions used. Recycling.");
         qIndexToShow = 0;
         setQuestionIndex(0);
       }
-      setCurrentQuestionObj(eslQuestions[qIndexToShow]);
-      setCurrentConsequence(null); // Crucial: Clear old consequence when new question appears
-      console.log(`[App.jsx] Displaying question #${qIndexToShow + 1} for Team ${activePlayerId}`);
-    } else if (gamePhase !== 'questioning' && gamePhase !== 'showingConsequenceThenMoving') {
-      // Clear question if not in a phase that shows it (but keep consequence if showing that)
-      setCurrentQuestionObj(null);
+      const question = eslQuestions[qIndexToShow];
+      setBoardCenterContent({
+        type: 'question',
+        content: question, // Pass the full question object
+        forPlayerName: activePlayer.name
+      });
+      console.log(`[App.jsx] Displaying question #${qIndexToShow + 1} for ${activePlayer.name}`);
     }
-  }, [gamePhase, activePlayerId, eslQuestions, questionIndex]);
+    // `boardCenterContent` is cleared at the start of `handleRollDice` for the new turn
+    // or when `handleAnswerSelect` sets it to display a consequence.
+  }, [gamePhase, activePlayerId, eslQuestions, questionIndex, players]); // Added players to get activePlayer.name
 
 
   const handleRollDice = useCallback(() => {
     if (gamePhase !== 'rolling') return;
     console.log(`[App.jsx] Team ${activePlayerId} rolling dice.`);
     
-    setCurrentConsequence(null); // Clear any leftover consequence from previous turn
-    setCurrentQuestionObj(null); // Clear any leftover question (board center shows placeholder)
+    setBoardCenterContent(null); // Clear previous player's consequence/question
     
     setGamePhase('diceMoving');
     const rollValue = Math.floor(Math.random() * 6) + 1;
@@ -89,23 +98,30 @@ function App() {
 
   // Called by MultipleChoiceQuestion when an answer option button is clicked
   const handleAnswerSelect = (selectedOption) => {
-    if (gamePhase !== 'questioning' || !selectedOption) return;
+    // Ensure we are in the questioning phase and an option is actually selected
+    if (gamePhase !== 'questioning' || !selectedOption || !boardCenterContent || boardCenterContent.type !== 'question') return;
 
-    console.log(`[App.jsx] Team ${activePlayerId} selected: "${selectedOption.optionText}".`);
-    setCurrentConsequence({ // Store consequence for display
-        consequenceText: selectedOption.consequenceText,
-        move: selectedOption.move
+    const currentPlayerName = boardCenterContent.forPlayerName; // Get name from when question was set
+    console.log(`[App.jsx] Team ${currentPlayerName} selected: "${selectedOption.optionText}".`);
+    
+    // Display the consequence immediately
+    setBoardCenterContent({
+        type: 'consequence',
+        content: { // Store only what's needed for consequence display
+            consequenceText: selectedOption.consequenceText,
+            move: selectedOption.move
+        },
+        forPlayerName: currentPlayerName
     });
-    setCurrentQuestionObj(null); // Hide the question options, only consequence will be shown by Board
-    setGamePhase('showingConsequenceThenMoving'); // New phase to show consequence AND then move
+    setGamePhase('consequenceMoving'); // Phase to apply move and switch turn
 
-    // Apply movement after a short delay (to allow consequence text to be seen briefly BEFORE move)
-    // This timeout is for the *visual delay* before the consequence move happens
+    // Apply movement after a short delay to let user read consequence.
+    // This timeout is for the GAME LOGIC to proceed, not just visuals.
     setTimeout(() => {
-      console.log(`[App.jsx] Applying consequence move: ${selectedOption.move} for Team ${activePlayerId}.`);
+      console.log(`[App.jsx] Applying consequence move: ${selectedOption.move} for Team ${currentPlayerName}.`);
       setPlayers(prevPlayers =>
         prevPlayers.map(p => {
-          if (p.id === activePlayerId) {
+          if (p.id === activePlayerId) { // Move the currently active player
             let newPos = p.pos + selectedOption.move;
             if (newPos > BOARD_CONFIG.TOTAL_SQUARES) newPos = BOARD_CONFIG.TOTAL_SQUARES;
             else if (newPos < 1) newPos = 1;
@@ -115,18 +131,16 @@ function App() {
         })
       );
 
-      // After the move, the consequence is still visible.
-      // The turn effectively ends here. The next player's "Roll Dice" action will clear it.
+      // The consequence remains displayed via boardCenterContent.
+      // Prepare for the next player's turn.
       const nextPlayerId = activePlayerId === 1 ? 2 : 1;
       setActivePlayerId(nextPlayerId);
-      setCurrentDiceRollValue(null); // Clear dice display for next player
-      setQuestionIndex(prev => prev + 1); // Prepare for next question for next player
-      // DO NOT clear currentConsequence here. It stays until next player rolls.
-      // DO NOT clear currentQuestionObj, it's already null.
-      setGamePhase('rolling'); // Set to 'rolling' for the NEXT player.
-      console.log(`[App.jsx] Consequence move done. Consequence still visible. Next player: Team ${nextPlayerId}. Phase: 'rolling'.`);
-
-    }, 1500); // Delay before applying consequence move, allows reading consequence text. Adjust as needed.
+      setCurrentDiceRollValue(null);
+      setQuestionIndex(prev => prev + 1);
+      // `boardCenterContent` (which shows the consequence) will be cleared by the next player's `handleRollDice`.
+      setGamePhase('rolling'); // Next player is now in 'rolling' phase
+      console.log(`[App.jsx] Consequence move done. Next player: Team ${nextPlayerId}. Phase: 'rolling'. Consequence still visible.`);
+    }, 1500); // Delay AFTER consequence is shown, before turn officially ends. Adjust as needed.
   };
 
 
@@ -146,8 +160,10 @@ function App() {
             color={player.color}
             isActive={player.id === activePlayerId && 
                         gamePhase !== 'diceMoving' && 
-                        // gamePhase !== 'consequenceMoving' && // This phase no longer exists as separate
-                        gamePhase !== 'setup'}
+                        // 'consequenceMoving' means the current active player just made a move,
+                        // but the *next* active player is already set.
+                        // So, highlight the player whose turn it will be to roll.
+                        (gamePhase === 'rolling' || gamePhase === 'questioning')}
           />
         ))}
       </div>
@@ -156,16 +172,10 @@ function App() {
         <Board
           players={players}
           config={BOARD_CONFIG}
-          // Determine what to show in the center of the board
-          showQuestionArea={gamePhase === 'questioning' || gamePhase === 'showingConsequenceThenMoving'}
-          currentQuestionObj={gamePhase === 'questioning' ? currentQuestionObj : null} // Only pass question if in 'questioning'
-          activePlayerNameForQuestion={activePlayerForDisplay?.name || ''}
+          boardCenterContent={boardCenterContent} // Pass the unified content object
           onAnswerSelect={handleAnswerSelect}
-          
-          // Props for MultipleChoiceQuestion to display either question or consequence
-          isDisplayingConsequence={gamePhase === 'showingConsequenceThenMoving'}
-          consequenceToShow={gamePhase === 'showingConsequenceThenMoving' ? currentConsequence : null}
-          disableOptionsDuringConsequence={gamePhase === 'showingConsequenceThenMoving'}
+          // Disable MCQ options if not in 'questioning' phase or if content isn't a question
+          disableOptions={gamePhase !== 'questioning' || (boardCenterContent && boardCenterContent.type !== 'question')}
         />
       </div>
 
