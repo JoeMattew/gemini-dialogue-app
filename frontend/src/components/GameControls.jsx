@@ -1,4 +1,3 @@
-// frontend/src/components/GameControls.jsx
 import React from 'react';
 import DiceDisplay from './DiceDisplay';
 import RollButton from './RollButton';
@@ -6,7 +5,7 @@ import './GameControls.css';
 
 const GameControls = ({ currentDiceRoll, onRollDice, activePlayerName, isRollDisabled }) => {
   return (
-    <div className="game-controls-bottom-panel"> {/* Renamed class */}
+    <div className="game-controls-bottom-panel">
       <DiceDisplay value={currentDiceRoll} />
       <RollButton
         onClick={onRollDice}
@@ -16,5 +15,4 @@ const GameControls = ({ currentDiceRoll, onRollDice, activePlayerName, isRollDis
     </div>
   );
 };
-
 export default GameControls;

@@ -3,7 +3,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import Player from './components/Player';
 import Board from './components/Board';
 import GameSetup from './components/GameSetup';
-// GameControls is removed
+import GameControls from './components/GameControls'; // Re-add GameControls
 import './App.css';
 
 const BOARD_CONFIG = {
@@ -17,25 +17,31 @@ const initialPlayersData = [
   { id: 2, name: 'Team 2', color: 'var(--player-2-color, #e74c3c)', pos: 1 },
 ];
 
+const CONSEQUENCE_DISPLAY_DURATION = 4000; // 4 seconds to show consequence
+
 function App() {
-  const [gamePhase, setGamePhase] = useState('setup'); // 'setup', 'questioning', 'processingAnswer', 'gameOver'
+  const [gamePhase, setGamePhase] = useState('setup'); // 'setup', 'rolling', 'diceMoving', 'questioning', 'processingAnswer', 'turnEnd'
   const [players, setPlayers] = useState(initialPlayersData);
   const [activePlayerId, setActivePlayerId] = useState(1);
+  const [currentDiceRollValue, setCurrentDiceRollValue] = useState(null);
   const [eslQuestions, setEslQuestions] = useState([]);
   const [gameSettings, setGameSettings] = useState(null);
-  const [currentQuestionObj, setCurrentQuestionObj] = useState(null); // Stores the full question object
+  const [currentQuestionObj, setCurrentQuestionObj] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [isProcessingAnswer, setIsProcessingAnswer] = useState(false); // To show consequence and disable buttons
 
   const handleQuestionsAndSettingsReady = (fetchedQuestions, settings) => {
     setEslQuestions(fetchedQuestions);
     setGameSettings(settings);
     setPlayers(initialPlayersData);
     setActivePlayerId(1);
+    setCurrentDiceRollValue(null);
     setQuestionIndex(0);
-    setGamePhase('questioning');
-    console.log("[App.jsx] Setup complete. Phase: 'questioning'. Questions loaded:", fetchedQuestions.length);
+    setGamePhase('rolling'); // Start with rolling phase for Player 1
+    console.log("[App.jsx] Setup complete. Phase: 'rolling'.");
   };
 
+  // Selects question for the 'questioning' phase
   useEffect(() => {
     if (gamePhase === 'questioning' && eslQuestions.length > 0) {
       let qIndexToShow = questionIndex;
@@ -45,46 +51,73 @@ function App() {
         setQuestionIndex(0);
       }
       setCurrentQuestionObj(eslQuestions[qIndexToShow]);
+      setIsProcessingAnswer(false); // Ready for an answer
       console.log(`[App.jsx] Displaying question #${qIndexToShow + 1} for Team ${activePlayerId}`);
     } else if (gamePhase !== 'questioning') {
-      setCurrentQuestionObj(null);
+      setCurrentQuestionObj(null); // Clear question if not in questioning phase
     }
   }, [gamePhase, activePlayerId, eslQuestions, questionIndex]);
 
 
-  // Called by MultipleChoiceQuestion when an answer option is selected (via the "OK / Next Turn" button)
+  const handleRollDice = useCallback(() => {
+    if (gamePhase !== 'rolling') return;
+
+    console.log(`[App.jsx] Team ${activePlayerId} rolling dice.`);
+    setGamePhase('diceMoving'); // Phase for dice roll movement
+    const rollValue = Math.floor(Math.random() * 6) + 1;
+    setCurrentDiceRollValue(rollValue);
+
+    setTimeout(() => { // Simulate dice roll and initial move
+      console.log(`[App.jsx] Team ${activePlayerId} rolled ${rollValue}. Moving (dice).`);
+      setPlayers(prevPlayers =>
+        prevPlayers.map(p => {
+          if (p.id === activePlayerId) {
+            let newPos = p.pos + rollValue;
+            if (newPos > BOARD_CONFIG.TOTAL_SQUARES) {
+              newPos = (newPos % BOARD_CONFIG.TOTAL_SQUARES) || BOARD_CONFIG.TOTAL_SQUARES;
+            }
+            return { ...p, pos: newPos };
+          }
+          return p;
+        })
+      );
+      console.log(`[App.jsx] Dice move complete for Team ${activePlayerId}. Phase: 'questioning'.`);
+      setGamePhase('questioning'); // After dice move, present a question
+    }, 700); // Dice move animation delay
+  }, [activePlayerId, gamePhase]);
+
+
   const handleAnswerSelected = (selectedOption) => {
-    if (!selectedOption || gamePhase !== 'questioning') return;
+    if (gamePhase !== 'questioning' || isProcessingAnswer || !selectedOption) return;
 
     console.log(`[App.jsx] Team ${activePlayerId} chose: "${selectedOption.optionText}". Consequence: ${selectedOption.consequenceText}, Move: ${selectedOption.move}`);
-    setGamePhase('processingAnswer'); // Indicate we are processing the move
+    setIsProcessingAnswer(true); // Show consequence, disable option buttons
+    setGamePhase('processingAnswer');
 
-    // Apply movement
-    setTimeout(() => { // Short delay to simulate processing/animation
+    // Delay to show consequence, then move, then end turn
+    setTimeout(() => {
+      console.log(`[App.jsx] Applying consequence move: ${selectedOption.move} for Team ${activePlayerId}.`);
       setPlayers(prevPlayers =>
         prevPlayers.map(p => {
           if (p.id === activePlayerId) {
             let newPos = p.pos + selectedOption.move;
-            // Boundary checks and wrapping logic
-            if (newPos > BOARD_CONFIG.TOTAL_SQUARES) {
-              newPos = BOARD_CONFIG.TOTAL_SQUARES; // Stop at the end
-            } else if (newPos < 1) {
-              newPos = 1; // Stop at the beginning
-            }
-            // TODO: Add win condition check if newPos reaches end
+            if (newPos > BOARD_CONFIG.TOTAL_SQUARES) newPos = BOARD_CONFIG.TOTAL_SQUARES;
+            else if (newPos < 1) newPos = 1;
             return { ...p, pos: newPos };
           }
           return p;
         })
       );
 
-      // Switch to next player
+      // End turn and prepare for next player
       const nextPlayerId = activePlayerId === 1 ? 2 : 1;
       setActivePlayerId(nextPlayerId);
-      setQuestionIndex(prev => prev + 1); // Prepare for next question
-      setGamePhase('questioning'); // Next player's turn starts with a new question
-      console.log(`[App.jsx] Move processed. Next player: Team ${nextPlayerId}. Phase: 'questioning'.`);
-    }, 700); // Delay for "movement" or showing consequence briefly
+      setCurrentDiceRollValue(null); // Clear dice from previous roll
+      setQuestionIndex(prev => prev + 1);
+      setIsProcessingAnswer(false); // Reset for next question
+      setGamePhase('rolling'); // Next player starts their turn by rolling
+      console.log(`[App.jsx] Consequence move complete. Next player: Team ${nextPlayerId}. Phase: 'rolling'.`);
+    }, CONSEQUENCE_DISPLAY_DURATION);
   };
 
 
@@ -102,7 +135,7 @@ function App() {
             key={player.id}
             teamName={player.name}
             color={player.color}
-            isActive={player.id === activePlayerId && gamePhase !== 'processingAnswer' && gamePhase !== 'setup'}
+            isActive={player.id === activePlayerId && gamePhase !== 'diceMoving' && gamePhase !== 'processingAnswer' && gamePhase !== 'setup'}
           />
         ))}
       </div>
@@ -111,18 +144,20 @@ function App() {
         <Board
           players={players}
           config={BOARD_CONFIG}
-          showQuestionInBoard={gamePhase === 'questioning' || gamePhase === 'processingAnswer'} // Show during these phases
-          currentQuestionObj={currentQuestionObj} // Pass the full object
+          showQuestionInBoard={gamePhase === 'questioning' || gamePhase === 'processingAnswer'}
+          currentQuestionObj={currentQuestionObj}
           activePlayerNameForQuestion={activePlayerForDisplay?.name || ''}
-          onAnswerSelect={handleAnswerSelected} // New prop for Board to pass to MCQ
+          onAnswerSelect={handleAnswerSelected}
+          isProcessingAnswer={isProcessingAnswer}
         />
       </div>
 
-      {/* GameControls component for dice and roll button is removed */}
-      {/* We can add a status bar or turn indicator at the bottom if needed */}
-      {/* <div className="game-status-bar">
-        {gamePhase === 'processingAnswer' && <p>Processing move...</p>}
-      </div> */}
+      <GameControls
+        currentDiceRoll={currentDiceRollValue}
+        onRollDice={handleRollDice}
+        activePlayerName={activePlayerForDisplay?.name || ''}
+        isRollDisabled={gamePhase !== 'rolling'} // Roll button only active in 'rolling' phase
+      />
     </div>
   );
 }

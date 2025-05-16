@@ -1,56 +1,65 @@
 /* frontend/src/components/MultipleChoiceQuestion.css */
-.mcq-area {
+.mcq-area-game { /* Added -game suffix */
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Center content vertically */
-  padding: 15px;
+  justify-content: center;
+  padding: 10px 15px; /* Adjusted padding */
   box-sizing: border-box;
   border-radius: 5px;
+  overflow-y: auto; /* Allow scroll if content overflows */
 }
 
-.mcq-area.active-question {
-  background-color: rgba(236, 239, 241, 0.97); /* Slightly more opaque */
+.mcq-area-game.active-mcq {
+  background-color: rgba(236, 239, 241, 0.97);
   border: 1px solid #b0bec5;
   box-shadow: 0 1px 5px rgba(0,0,0,0.08);
 }
 
-.mcq-area.placeholder p {
+.mcq-area-game.placeholder-mcq p { /* Added -mcq suffix */
     font-style: italic;
     color: #78909c;
     font-size: 1.1em;
 }
 
-.mcq-area h4 {
-  margin: 0 0 10px 0;
-  font-size: 1.1em;
+.mcq-area-game h4 {
+  margin: 0 0 8px 0; /* Adjusted margin */
+  font-size: 1em; /* Slightly smaller */
   color: var(--button-primary-bg, #007bff);
   font-weight: 600;
 }
 
-.mcq-question-text {
-  font-size: 1.25em;
+.mcq-question-text-game { /* Added -game suffix */
+  font-size: 1.15em; /* Adjusted size */
   color: var(--text-color, #213547);
-  line-height: 1.4;
-  margin: 0 0 15px 0;
+  line-height: 1.3; /* Adjusted line height */
+  margin: 0 0 12px 0; /* Adjusted margin */
   text-align: center;
   width: 100%;
 }
 
-.mcq-options {
+.mcq-options-game { /* Added -game suffix */
   display: flex;
-  flex-direction: column; /* Stack option buttons */
-  gap: 10px;
+  gap: 8px; /* Space between buttons */
   width: 100%;
-  max-width: 350px; /* Limit width of option buttons */
-  align-items: stretch; /* Make buttons take full width of this container */
+  justify-content: center; /* Center buttons if they don't fill width */
+  flex-wrap: wrap; /* Allow buttons to wrap on small screens */
 }
 
-.mcq-option-button {
-  padding: 10px 15px;
-  font-size: 0.95em;
+.mcq-options-game.horizontal {
+  flex-direction: row; /* Arrange buttons horizontally */
+}
+.mcq-options-game.horizontal .mcq-option-button-game {
+    flex: 1 1 100px; /* Allow buttons to grow/shrink, base size 100px */
+    max-width: 150px; /* Max width for each option button */
+}
+
+
+.mcq-option-button-game { /* Added -game suffix */
+  padding: 8px 12px; /* Adjusted padding */
+  font-size: 0.9em;
   background-color: var(--button-primary-bg, #007bff);
   color: var(--button-primary-text, white);
   border: 1px solid transparent;
@@ -59,45 +68,48 @@
   transition: background-color 0.2s, transform 0.1s;
   text-align: center;
 }
-
-.mcq-option-button:hover {
-  opacity: 0.85;
-  transform: scale(1.02);
+.mcq-option-button-game:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 
-.mcq-consequence {
-  margin-top: 15px;
-  padding: 15px;
-  background-color: rgba(224, 247, 250, 0.8); /* Light cyan for consequence */
-  border: 1px solid #4dd0e1;
+.mcq-option-button-game:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.mcq-consequence-game { /* Added -game suffix */
+  margin-top: 12px;
+  padding: 12px;
+  background-color: rgba(200, 230, 201, 0.85); /* Light green for consequence */
+  border: 1px solid #66bb6a;
   border-radius: 5px;
   width: 100%;
   max-width: 400px;
   text-align: center;
 }
+.mcq-chosen-option-text {
+    font-size: 0.9em;
+    font-style: italic;
+    color: #555;
+    margin-bottom: 5px;
+}
 
-.mcq-consequence-text {
-  font-size: 1.1em;
-  margin: 0 0 8px 0;
+.mcq-consequence-text-game { /* Added -game suffix */
+  font-size: 1.05em;
+  margin: 0 0 5px 0;
   font-weight: 500;
 }
 
-.mcq-consequence-move {
-  font-size: 1em;
-  margin: 0 0 15px 0;
-  color: #00796b; /* Teal color for move instruction */
+.mcq-consequence-move-game { /* Added -game suffix */
+  font-size: 0.95em;
+  margin: 0 0 10px 0;
+  color: #00796b;
   font-weight: bold;
 }
-
-.mcq-proceed-button {
-  padding: 8px 20px;
-  font-size: 0.95em;
-  background-color: #26a69a; /* Teal button */
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+.processing-move-text {
+    font-size: 0.85em;
+    font-style: italic;
+    color: #333;
+    margin-top: 5px;
 }
-.mcq-proceed-button:hover {
-  background-color: #00897b;
-}
+/* No proceed button anymore */

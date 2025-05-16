@@ -1,11 +1,11 @@
 // frontend/src/components/Board.jsx
 import React from 'react';
 import Square from './Square';
-import MultipleChoiceQuestion from './MultipleChoiceQuestion'; // UPDATED
+import MultipleChoiceQuestion from './MultipleChoiceQuestion'; // Using this now
 import './Board.css';
 
 // getSquareStyle function remains the same
-const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => { /* ... as before ... */ 
+const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => { /* ... as before ... */
   let r, c;
   const top_end_id = H_GRID_CELLS;
   const right_side_length = V_GRID_CELLS - 1;
@@ -20,14 +20,14 @@ const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => { /* ... as bef
   return { gridRowStart: r, gridColumnStart: c };
 };
 
-
 const Board = ({
   players,
   config,
   showQuestionInBoard,
   currentQuestionObj, // Pass the whole question object
   activePlayerNameForQuestion,
-  onAnswerSelect // New handler from App.jsx
+  onAnswerSelect, // Handler for when an MCQ option is chosen
+  isProcessingAnswer // New prop
 }) => {
   const squaresCmp = [];
   for (let i = 1; i <= config.TOTAL_SQUARES; i++) {
@@ -63,15 +63,16 @@ const Board = ({
       >
         {squaresCmp}
         <div className="board-center-content-area">
-          {showQuestionInBoard && currentQuestionObj ? (
+          {(showQuestionInBoard && currentQuestionObj) ? ( // Check currentQuestionObj too
             <MultipleChoiceQuestion
               questionObj={currentQuestionObj}
               playerName={activePlayerNameForQuestion}
               onAnswerSelect={onAnswerSelect}
+              isProcessingAnswer={isProcessingAnswer}
             />
           ) : (
-            <div className="mcq-area placeholder"> {/* Use consistent class */}
-                <p>Next player's turn soon...</p>
+            <div className="mcq-area-game placeholder-mcq"> {/* Consistent placeholder */}
+                <p>Roll the dice to move!</p>
             </div>
           )}
         </div>

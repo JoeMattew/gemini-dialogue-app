@@ -1,45 +1,43 @@
-// frontend/src/components/MultipleChoiceQuestion.jsx
-import React, { useState } from 'react';
-import './MultipleChoiceQuestion.css'; // Create this CSS file
+import React, { useState, useEffect } from 'react';
+import './MultipleChoiceQuestion.css';
 
-const MultipleChoiceQuestion = ({ questionObj, playerName, onAnswerSelect }) => {
-  const [selectedOption, setSelectedOption] = useState(null); // To store the chosen option object
-  const [showConsequence, setShowConsequence] = useState(false);
+const MultipleChoiceQuestion = ({ questionObj, playerName, onAnswerSelect, isProcessingAnswer }) => {
+  // isProcessingAnswer (new prop) can be used to disable buttons after selection
+  const [selectedOptionConsequence, setSelectedOptionConsequence] = useState(null);
+
+  // Reset local state when questionObj changes (new question for new player)
+  useEffect(() => {
+    setSelectedOptionConsequence(null);
+  }, [questionObj]);
+
 
   if (!questionObj || !questionObj.text || !questionObj.options) {
     return (
-      <div className="mcq-area placeholder">
-        <p>Loading question or turn transition...</p>
+      <div className="mcq-area-game placeholder-mcq"> {/* Added specific class */}
+        <p>Landed on a square!</p> {/* Placeholder while question loads or if none */}
       </div>
     );
   }
 
   const handleOptionClick = (option) => {
-    setSelectedOption(option);
-    setShowConsequence(true);
-    // Call onAnswerSelect after a short delay to show consequence, or immediately and App.jsx handles showing consequence
-    // For now, let's show consequence here, then App.jsx will handle movement and turn change.
-    // A "Next Turn" button will appear after showing consequence.
-  };
-
-  const handleProceed = () => {
-    onAnswerSelect(selectedOption); // Pass the whole selected option object
-    setSelectedOption(null);      // Reset for next question
-    setShowConsequence(false);
+    if (isProcessingAnswer) return; // Prevent re-clicks while processing
+    setSelectedOptionConsequence(option); // Show consequence
+    onAnswerSelect(option); // Immediately notify App.jsx of the selection
   };
 
   return (
-    <div className="mcq-area active-question">
-      <h4>{playerName}'s Scenario:</h4>
-      <p className="mcq-question-text">{questionObj.text}</p>
+    <div className="mcq-area-game active-mcq"> {/* Added specific class */}
+      <h4>{playerName}'s Question:</h4>
+      <p className="mcq-question-text-game">{questionObj.text}</p>
 
-      {!showConsequence && (
-        <div className="mcq-options">
+      {!selectedOptionConsequence && ( // Show options only if no consequence is being displayed
+        <div className="mcq-options-game horizontal"> {/* Added 'horizontal' class */}
           {questionObj.options.map((opt, index) => (
             <button
               key={index}
-              className="mcq-option-button"
+              className="mcq-option-button-game"
               onClick={() => handleOptionClick(opt)}
+              disabled={isProcessingAnswer}
             >
               {opt.optionText}
             </button>
@@ -47,15 +45,15 @@ const MultipleChoiceQuestion = ({ questionObj, playerName, onAnswerSelect }) => 
         </div>
       )}
 
-      {showConsequence && selectedOption && (
-        <div className="mcq-consequence">
-          <p className="mcq-consequence-text">{selectedOption.consequenceText}</p>
-          <p className="mcq-consequence-move">
-            Movement: {selectedOption.move > 0 ? `+${selectedOption.move}` : selectedOption.move} step(s)
+      {selectedOptionConsequence && (
+        <div className="mcq-consequence-game">
+          <p className="mcq-chosen-option-text">You chose: "{selectedOptionConsequence.optionText}"</p>
+          <p className="mcq-consequence-text-game">{selectedOptionConsequence.consequenceText}</p>
+          <p className="mcq-consequence-move-game">
+            Movement: {selectedOptionConsequence.move > 0 ? `+${selectedOptionConsequence.move}` : selectedOptionConsequence.move} step(s)
           </p>
-          <button onClick={handleProceed} className="mcq-proceed-button">
-            OK / Next Turn
-          </button>
+          {/* The game will auto-advance after this is shown for a bit by App.jsx */}
+          {isProcessingAnswer && <p className="processing-move-text">Moving...</p>}
         </div>
       )}
     </div>
