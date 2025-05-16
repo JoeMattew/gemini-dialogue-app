@@ -47,43 +47,68 @@ const model = genAI.getGenerativeModel({
 // THIS IS THE CORRECTED ENDPOINT FOR ESL QUESTIONS
 app.post('/api/generate-esl-questions', async (req, res) => {
     try {
-        // Destructure the expected fields from the frontend
-        const { topic, level, structure, count = 40, questionType = "open_ended" } = req.body;
+        const { topic, level, structure, count = 40 } = req.body; // questionType removed, it's now implied
 
         if (!topic || !level || !structure) {
             return res.status(400).json({ error: "Topic, level, and structure are required." });
         }
 
-        // Construct the detailed prompt for Gemini
-        const detailedPrompt = `
-            You are an ESL curriculum assistant. Generate ${count} ESL practice questions.
-            Topic: ${topic}
-            Grammar/Structure Focus: ${structure}
-            Student Level: ${level} (e.g., A1 - Beginner, B2 - Intermediate)
-            Question Type: ${questionType} (These should encourage full sentence answers, not just yes/no or single words).
+        const prompt = `
+            You are an ESL game designer. Generate ${count} unique ESL scenario-based multiple-choice questions for students.
+            Each question should immerse the student in a situation related to the chosen "Topic".
+            The language and complexity must be suitable for the "Student Level".
+            The "Grammar/Structure Focus" should be subtly incorporated into the question or the scenario if appropriate, or can guide the overall theme of the scenarios.
 
-            Instructions:
-            1. Each question must be directly related to the topic, grammar/structure, and appropriate for the student level.
-            2. For "${questionType}" questions, ensure they are truly open and cannot be easily answered with a single word or simple "yes/no". They should prompt the student to formulate a response.
-            3. If the structure input implies a visual or situational context (e.g., "What do you like? + 🍎" or "Describe a picture of a park"), formulate questions that evoke this context. For example: "Imagine you see a picture of an apple. Using the structure 'I like...', tell me about the apple." or "If you were at a park, what would you typically do there, using past simple verbs?"
-            4. The language complexity, vocabulary, and sentence length must be suitable for the specified student level.
+            For each question, provide:
+            1.  The main question text ("text").
+            2.  Exactly three answer options ("options"). Each option is an object with:
+                a.  "optionText": The text for the answer button (e.g., "Choose the banana").
+                b.  "consequenceText": A short, engaging sentence describing the outcome of choosing this option.
+                c.  "move": An integer representing steps to move. Can be positive (forward), negative (backward), or 0 (stay). Examples: +1, -2, 0. Keep movement small, between -2 and +2.
+
+            Criteria:
+            - Topic: ${topic}
+            - Student Level: ${level} (e.g., A1 - Beginner, B2 - Intermediate)
+            - Grammar/Structure Focus: ${structure}
 
             Output Format:
-            Return ONLY a valid JSON array of objects. Each object in the array must have exactly one key: "text", whose value is the question string.
-            Example of a single object in the array:
-            {"text": "What are three things you usually do on weekends?"}
+            Return ONLY a valid JSON array of question objects.
+            Each question object in the array must have "text" (string) and "options" (array of 3 option objects).
+            Each option object must have "optionText" (string), "consequenceText" (string), and "move" (integer).
 
-            Do not include any introductory text, explanations, numbering, or markdown formatting like \`\`\`json or \`\`\` outside the JSON array itself. The entire response must be the JSON array.
+            Example of a single question object in the array:
+            {
+              "text": "You're at a fruit stand feeling hungry. Which fruit do you pick?",
+              "options": [
+                {
+                  "optionText": "The big watermelon",
+                  "consequenceText": "It's too heavy to carry far! You rest. Stay in place.",
+                  "move": 0
+                },
+                {
+                  "optionText": "The ripe banana",
+                  "consequenceText": "Delicious and energizing! Move forward 1 step.",
+                  "move": 1
+                },
+                {
+                  "optionText": "The slightly green apple",
+                  "consequenceText": "It's a bit sour and you get a tummy ache! Go back 1 step.",
+                  "move": -1
+                }
+              ]
+            }
+
+            Do not include any introductory text, explanations, numbering, or markdown formatting like \`\`\`json or \`\`\` outside the JSON array itself.
+            The entire response must be the JSON array. Ensure all requested fields are present for every question and option.
         `;
 
-        console.log(`[Backend /api/generate-esl-questions] Generating ${count} '${questionType}' questions. Topic: ${topic}, Level: ${level}, Structure: ${structure}`);
-        // console.log("[Backend] Full prompt to Gemini:", detailedPrompt); // Optional: log the full prompt for debugging
+        console.log(`[Backend] Generating ${count} multiple-choice ESL questions. Topic: ${topic}, Level: ${level}, Structure: ${structure}`);
 
-        const result = await model.generateContent(detailedPrompt); // Use the detailedPrompt
-        const gResponse = result.response;
+        const result = await model.generateContent(prompt);
+        const gResponse = result.response; // Renamed to avoid conflict
         const responseText = gResponse.text();
 
-        console.log("[Backend /api/generate-esl-questions] Raw Gemini response snippet:", responseText.substring(0, 200) + "...");
+        console.log("[Backend] Raw Gemini response snippet for ESL questions:", responseText.substring(0, 300) + "...");
 
         let questionsArray;
         try {
@@ -94,12 +119,23 @@ app.post('/api/generate-esl-questions', async (req, res) => {
             return res.status(500).json({ error: "Failed to parse questions from AI.", rawResponse: responseText });
         }
 
-        if (!Array.isArray(questionsArray) || (questionsArray.length > 0 && typeof questionsArray[0].text === 'undefined')) {
-            console.error("[Backend] Parsed ESL questions response is not an array or has incorrect object structure:", questionsArray);
-            return res.status(500).json({ error: "AI response was not a valid question array or had incorrect object structure." });
+        // Deeper validation of the structure
+        if (!Array.isArray(questionsArray) || questionsArray.length === 0) {
+            console.error("[Backend] Parsed response is not an array or is empty:", questionsArray);
+            return res.status(500).json({ error: "AI response was not a valid non-empty question array.", rawResponse: responseText });
+        }
+        const firstQuestion = questionsArray[0];
+        if (typeof firstQuestion.text !== 'string' || !Array.isArray(firstQuestion.options) || firstQuestion.options.length !== 3) {
+            console.error("[Backend] First question object has incorrect structure (text or options array):", firstQuestion);
+            return res.status(500).json({ error: "AI returned questions with incorrect main structure.", rawResponse: responseText });
+        }
+        const firstOption = firstQuestion.options[0];
+        if (typeof firstOption.optionText !== 'string' || typeof firstOption.consequenceText !== 'string' || typeof firstOption.move !== 'number') {
+            console.error("[Backend] First option object has incorrect structure:", firstOption);
+            return res.status(500).json({ error: "AI returned options with incorrect structure.", rawResponse: responseText });
         }
         
-        console.log(`[Backend] Successfully generated ${questionsArray.length} ESL questions.`);
+        console.log(`[Backend] Successfully generated and validated ${questionsArray.length} ESL questions.`);
         res.json(questionsArray);
 
     } catch (error) {
@@ -111,8 +147,8 @@ app.post('/api/generate-esl-questions', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 10000; // Or 3001, ensure consistency with .env if present
+const PORT = process.env.PORT || 3001; // Or your preferred port
 app.listen(PORT, () => {
-    console.log(`Backend server listening on http://localhost:${PORT}`); // This log is for local; Render uses its own port
+    console.log(`Backend server listening on http://localhost:${PORT}`);
     console.log(GEMINI_API_KEY ? "Gemini API Key loaded successfully." : "Gemini API Key NOT FOUND in .env file!");
 });
