@@ -1,7 +1,7 @@
 // frontend/src/components/Board.jsx
 import React from 'react';
 import Square from './Square';
-import MultipleChoiceQuestion from './MultipleChoiceQuestion'; // Using this now
+import MultipleChoiceQuestion from './MultipleChoiceQuestion';
 import './Board.css';
 
 // getSquareStyle function remains the same
@@ -23,11 +23,14 @@ const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => { /* ... as bef
 const Board = ({
   players,
   config,
-  showQuestionInBoard,
-  currentQuestionObj, // Pass the whole question object
+  // Props for question display, controlled by App.jsx
+  showQuestionInBoard, // True during 'questioning' or 'showingConsequence'
+  currentQuestionObj,
   activePlayerNameForQuestion,
-  onAnswerSelect, // Handler for when an MCQ option is chosen
-  isProcessingAnswer // New prop
+  onAnswerSelect,
+  isQuestionButtonsDisabled, // To disable MCQ options
+  isShowingConsequence,      // True to show consequence panel
+  chosenOptionForConsequence // The option whose consequence to show
 }) => {
   const squaresCmp = [];
   for (let i = 1; i <= config.TOTAL_SQUARES; i++) {
@@ -63,15 +66,17 @@ const Board = ({
       >
         {squaresCmp}
         <div className="board-center-content-area">
-          {(showQuestionInBoard && currentQuestionObj) ? ( // Check currentQuestionObj too
+          {(showQuestionInBoard && currentQuestionObj) ? (
             <MultipleChoiceQuestion
               questionObj={currentQuestionObj}
               playerName={activePlayerNameForQuestion}
               onAnswerSelect={onAnswerSelect}
-              isProcessingAnswer={isProcessingAnswer}
+              isButtonsDisabled={isQuestionButtonsDisabled}
+              isShowingConsequence={isShowingConsequence}
+              chosenOptionForConsequence={chosenOptionForConsequence}
             />
           ) : (
-            <div className="mcq-area-game placeholder-mcq"> {/* Consistent placeholder */}
+            <div className="mcq-area-game placeholder-mcq">
                 <p>Roll the dice to move!</p>
             </div>
           )}
