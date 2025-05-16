@@ -9,51 +9,43 @@
 
 .board-grid-layout {
   display: grid;
-  /* Let's define a target square height and let width be responsive */
-  /* --square-height: 60px; /* Example target height for squares */
-  /* --square-width: auto; /* Width will be determined by 1fr or aspect ratio */
-
-  /* Make squares taller: minmax for height more generous, width can be 1fr */
-  /* H_GRID_CELLS (e.g., 15), V_GRID_CELLS (e.g., 5) */
-  /* If V_GRID_CELLS is 5, and we want more center space, the outer squares need to be taller. */
-  /* The aspect-ratio property is key here. */
+  /* Original V_GRID_CELLS = 5. Target square height: 55px (from last attempt)
+     25% shorter: 55px * 0.75 = ~41px. Let's try minmax(35px, 1fr) for rows.
+     For width, minmax(40px, 1fr) was okay.
+  */
+  grid-template-columns: repeat(var(--grid-cols), minmax(35px, 1fr)); /* Slightly smaller min for width */
+  grid-template-rows: repeat(var(--grid-rows), minmax(40px, 1fr));    /* << ADJUSTED min square height */
   
-  grid-template-columns: repeat(var(--grid-cols), minmax(40px, 1fr)); /* Min width 40px, then fill */
-  grid-template-rows: repeat(var(--grid-rows), minmax(55px, 1fr));    /* << INCREASED min square height */
+  aspect-ratio: var(--grid-cols) / var(--grid-rows);
   
-  /* To make the board wider relative to its height, adjust aspect ratio */
-  /* Aspect ratio = width-units / height-units */
-  /* If grid is 15 cols, 5 rows: default aspect-ratio = 15/5 = 3 */
-  /* To make it relatively "shorter" (wider appearance for given height, or taller for given width),
-     decrease the height part of the ratio or increase the width part.
-     Let's rely on the cell sizes primarily. */
-  /* aspect-ratio: var(--grid-cols) / var(--grid-rows); */ /* This is good for squareness */
+  width: 100%;
+  height: auto; 
 
-  width: 100%;  /* Fill the wrapper (.board-wrapper-main) */
-  /* Height will be determined by content and aspect ratio or row heights */
-  /* max-height: 85vh; /* Control overall board height */
+  max-width: 100%; /* Constrained by .board-wrapper-main */
   
   gap: 1px;
-  padding: 6px;
+  padding: 5px;
   background-color: #b0bec5;
   border: 2px solid #78909c;
-  border-radius: 8px; /* Slightly larger radius */
+  border-radius: 8px;
   position: relative;
   box-sizing: border-box;
 }
 
 .board-center-content-area {
   grid-column-start: 2;
-  grid-column-end: calc(var(--grid-cols)); /* Spans cols 2 to (H_GRID_CELLS - 1) */
+  grid-column-end: calc(var(--grid-cols));
   grid-row-start: 2;
-  grid-row-end: calc(var(--grid-rows));   /* Spans rows 2 to (V_GRID_CELLS - 1) */
+  grid-row-end: calc(var(--grid-rows));
   
-  background-color: #dde3e6; /* Slightly different, cleaner background */
-  border-radius: 4px; /* Match inner elements */
-  display: flex;
+  background-color: #dde3e6; /* Consistent background */
+  border-radius: 4px;
+  display: flex; /* Helps with alignment of child */
+  flex-direction: column; /* Stack question and consequence if shown together */
   align-items: center;
   justify-content: center;
-  overflow: hidden; /* Ensure content fits */
-  padding: 10px 15px; /* More padding inside center area for question */
+  overflow: hidden; /* Crucial to prevent scrollbars */
+  padding: 8px 10px; /* Adjusted padding */
   box-sizing: border-box;
+  text-align: center; /* Center text by default */
 }

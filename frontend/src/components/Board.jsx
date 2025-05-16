@@ -4,7 +4,7 @@ import Square from './Square';
 import MultipleChoiceQuestion from './MultipleChoiceQuestion';
 import './Board.css';
 
-// getSquareStyle function remains the same (36-square, 15x5 grid version)
+// getSquareStyle function remains the same
 const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => {
   let r, c;
   const top_end_id = H_GRID_CELLS;
@@ -23,10 +23,14 @@ const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => {
 const Board = ({
   players,
   config,
-  showQuestionInBoard, // True during 'questioning' phase (controlled by App.jsx)
-  currentQuestionObj,
+  // Props for question/consequence display
+  showQuestionArea, // True if any content (question or consequence) should be in center
+  currentQuestionObj, // The full question {text, options} - null if showing consequence
   activePlayerNameForQuestion,
-  onAnswerFinalized // Prop from App.jsx (was onAnswerSelect)
+  onAnswerSelect,
+  isDisplayingConsequence, // True if App wants MCQ to show a consequence
+  consequenceToShow,       // The {consequenceText, move} object
+  disableOptionsDuringConsequence // True to disable MCQ option buttons
 }) => {
   const squaresCmp = [];
   for (let i = 1; i <= config.TOTAL_SQUARES; i++) {
@@ -38,7 +42,7 @@ const Board = ({
              i === config.H_GRID_CELLS + (config.V_GRID_CELLS - 1) + (config.H_GRID_CELLS -1) ) {
       type = 'corner';
     }
-    if (i===1) type = 'go'; // 'go' styling takes precedence
+    if (i===1) type = 'go';
 
     squaresCmp.push(
       <Square key={i} id={i} style={style} type={type}>
@@ -62,15 +66,18 @@ const Board = ({
       >
         {squaresCmp}
         <div className="board-center-content-area">
-          {showQuestionInBoard && currentQuestionObj ? (
+          {showQuestionArea ? (
             <MultipleChoiceQuestion
-              questionObj={currentQuestionObj}
+              questionObj={currentQuestionObj} // Will be null if only showing consequence
               playerName={activePlayerNameForQuestion}
-              onAnswerFinalized={onAnswerFinalized} // Pass the handler from App.jsx
+              onAnswerSelect={onAnswerSelect}
+              isDisplayingConsequence={isDisplayingConsequence}
+              consequenceToShow={consequenceToShow}
+              disableOptions={disableOptionsDuringConsequence}
             />
           ) : (
             <div className="mcq-area-game placeholder-mcq">
-                <p>Roll the dice to move!</p> {/* Placeholder when no question */}
+                <p>Roll the dice!</p>
             </div>
           )}
         </div>
