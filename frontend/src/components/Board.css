@@ -3,42 +3,57 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%; /* Takes full width of its wrapper (.board-wrapper-main) */
-  height: 100%; /* Takes full height of its wrapper */
+  width: 100%;
+  height: 100%;
 }
 
 .board-grid-layout {
   display: grid;
-  grid-template-columns: repeat(var(--grid-cols), minmax(30px, 1fr)); /* Min square size 30px, then responsive */
-  grid-template-rows: repeat(var(--grid-rows), minmax(30px, 1fr));   /* Min square size 30px, then responsive */
-  aspect-ratio: var(--grid-cols) / var(--grid-rows); /* Crucial for maintaining shape */
-  
-  width: 100%;  /* Fill the wrapper */
-  height: auto; /* Let aspect-ratio determine height based on width */
+  /* Let's define a target square height and let width be responsive */
+  /* --square-height: 60px; /* Example target height for squares */
+  /* --square-width: auto; /* Width will be determined by 1fr or aspect ratio */
 
-  max-width: 100%; /* Already constrained by .board-wrapper-main's max-width */
-  /* You can add max-height here if needed, e.g., max-height: 80vh; */
+  /* Make squares taller: minmax for height more generous, width can be 1fr */
+  /* H_GRID_CELLS (e.g., 15), V_GRID_CELLS (e.g., 5) */
+  /* If V_GRID_CELLS is 5, and we want more center space, the outer squares need to be taller. */
+  /* The aspect-ratio property is key here. */
+  
+  grid-template-columns: repeat(var(--grid-cols), minmax(40px, 1fr)); /* Min width 40px, then fill */
+  grid-template-rows: repeat(var(--grid-rows), minmax(55px, 1fr));    /* << INCREASED min square height */
+  
+  /* To make the board wider relative to its height, adjust aspect ratio */
+  /* Aspect ratio = width-units / height-units */
+  /* If grid is 15 cols, 5 rows: default aspect-ratio = 15/5 = 3 */
+  /* To make it relatively "shorter" (wider appearance for given height, or taller for given width),
+     decrease the height part of the ratio or increase the width part.
+     Let's rely on the cell sizes primarily. */
+  /* aspect-ratio: var(--grid-cols) / var(--grid-rows); */ /* This is good for squareness */
+
+  width: 100%;  /* Fill the wrapper (.board-wrapper-main) */
+  /* Height will be determined by content and aspect ratio or row heights */
+  /* max-height: 85vh; /* Control overall board height */
   
   gap: 1px;
-  padding: 5px;
-  background-color: #b0bec5; /* Color for the gaps */
+  padding: 6px;
+  background-color: #b0bec5;
   border: 2px solid #78909c;
-  border-radius: 5px;
-  position: relative; /* For positioning the center content */
+  border-radius: 8px; /* Slightly larger radius */
+  position: relative;
   box-sizing: border-box;
 }
 
 .board-center-content-area {
   grid-column-start: 2;
-  grid-column-end: calc(var(--grid-cols));
+  grid-column-end: calc(var(--grid-cols)); /* Spans cols 2 to (H_GRID_CELLS - 1) */
   grid-row-start: 2;
-  grid-row-end: calc(var(--grid-rows));
+  grid-row-end: calc(var(--grid-rows));   /* Spans rows 2 to (V_GRID_CELLS - 1) */
   
-  background-color: #cfd8dc; /* Default background when no question */
-  border-radius: 3px;
+  background-color: #dde3e6; /* Slightly different, cleaner background */
+  border-radius: 4px; /* Match inner elements */
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden; /* Important for child components */
-  padding: 5px; /* Padding for the question display component itself */
+  overflow: hidden; /* Ensure content fits */
+  padding: 10px 15px; /* More padding inside center area for question */
+  box-sizing: border-box;
 }

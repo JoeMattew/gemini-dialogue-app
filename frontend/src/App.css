@@ -14,29 +14,30 @@
   display: flex;
   justify-content: space-between;
   width: 100%;
-  max-width: 600px;
+  max-width: 650px; /* Slightly wider if needed for balance */
   margin-bottom: 15px;
   padding: 0 5px;
   box-sizing: border-box;
-  gap: 15px;
+  gap: 20px;
 }
 
 .board-wrapper-main {
-  width: 95vw;         /* Board wrapper takes 95% of viewport width */
-  max-width: 900px;    /* Max pixel width for the board area */
-  margin-bottom: 10px; /* Reduced gap below board */
+  width: 90vw;         /* Board wrapper takes 90% of viewport width - as requested */
+  max-width: 1000px;   /* INCREASED max pixel width for a larger board */
+  margin-bottom: 5px;  /* << REDUCED gap below board SIGNIFICANTLY */
   display: flex;
   justify-content: center;
+  align-items: center; /* Vertically center board if it doesn't fill flex-grow space */
   flex-grow: 1; /* Allow board wrapper to take available vertical space */
-  min-height: 300px; /* Give it some minimum height so aspect-ratio works */
-  /* Consider adding a max-height to prevent it from becoming too tall */
-  /* max-height: 75vh; */
+  min-height: 350px; /* INCREASED min-height, adjust with aspect ratio */
+  /* Consider max-height for very tall, narrow screens if aspect ratio is fixed */
+  /* max-height: 80vh; */
 }
 
-.game-controls-bottom-panel { /* Target class from GameControls.jsx */
-    padding: 10px 0;
-    margin-top: 5px; /* Reduced gap above controls */
-    width: 100%;
-    max-width: 400px; /* Max width for the controls area */
-    /* Other styles like display:flex are in GameControls.css */
+.game-controls-bottom-panel {
+  padding: 10px 0;
+  margin-top: 0px; /* << REDUCED gap above controls to bring it closer */
+  width: 100%;
+  max-width: 400px;
+  /* Styles from GameControls.css for flex display will apply */
 }
