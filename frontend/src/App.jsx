@@ -11,19 +11,19 @@ const initialPlayersData = [
   { id: 1, name: 'Team 1', color: 'var(--player-1-color, #3498db)', pos: 1 },
   { id: 2, name: 'Team 2', color: 'var(--player-2-color, #e74c3c)', pos: 1 },
 ];
-const CONSEQUENCE_VISIBILITY_DURATION = 3500; // How long to show consequence text
+// CONSEQUENCE_VISIBILITY_DURATION is no longer needed here, as user action (next player's roll) clears it.
 
 function App() {
-  // Game Phases: 'setup', 'rolling', 'diceMoving', 'questioning', 'showingConsequence', 'consequenceMoving', 'gameOver'
+  // Game Phases: 'setup', 'rolling', 'diceMoving', 'questioning', 'showingConsequenceThenMoving', 'turnEnded', 'gameOver'
   const [gamePhase, setGamePhase] = useState('setup');
   const [players, setPlayers] = useState(initialPlayersData);
   const [activePlayerId, setActivePlayerId] = useState(1);
   const [currentDiceRollValue, setCurrentDiceRollValue] = useState(null);
   const [eslQuestions, setEslQuestions] = useState([]);
-  const [gameSettings, setGameSettings] = useState(null); // Kept for reference
-  const [currentQuestionObj, setCurrentQuestionObj] = useState(null); // Full question {text, options}
+  const [gameSettings, setGameSettings] = useState(null);
+  const [currentQuestionObj, setCurrentQuestionObj] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [currentConsequence, setCurrentConsequence] = useState(null); // {consequenceText, move}
+  const [currentConsequence, setCurrentConsequence] = useState(null); // Stores { consequenceText, move }
 
   const handleQuestionsAndSettingsReady = (fetchedQuestions, settings) => {
     setEslQuestions(fetchedQuestions);
@@ -33,7 +33,7 @@ function App() {
     setCurrentDiceRollValue(null);
     setQuestionIndex(0);
     setCurrentConsequence(null);
-    setGamePhase('rolling');
+    setGamePhase('rolling'); // Player 1 starts by being able to roll
     console.log("[App.jsx] Setup complete. Phase: 'rolling'.");
   };
 
@@ -47,10 +47,11 @@ function App() {
         setQuestionIndex(0);
       }
       setCurrentQuestionObj(eslQuestions[qIndexToShow]);
-      setCurrentConsequence(null); // Clear any old consequence
+      setCurrentConsequence(null); // Crucial: Clear old consequence when new question appears
       console.log(`[App.jsx] Displaying question #${qIndexToShow + 1} for Team ${activePlayerId}`);
-    } else if (gamePhase !== 'questioning' && gamePhase !== 'showingConsequence') {
-      setCurrentQuestionObj(null); // Clear question if not in relevant phase
+    } else if (gamePhase !== 'questioning' && gamePhase !== 'showingConsequenceThenMoving') {
+      // Clear question if not in a phase that shows it (but keep consequence if showing that)
+      setCurrentQuestionObj(null);
     }
   }, [gamePhase, activePlayerId, eslQuestions, questionIndex]);
 
@@ -58,6 +59,10 @@ function App() {
   const handleRollDice = useCallback(() => {
     if (gamePhase !== 'rolling') return;
     console.log(`[App.jsx] Team ${activePlayerId} rolling dice.`);
+    
+    setCurrentConsequence(null); // Clear any leftover consequence from previous turn
+    setCurrentQuestionObj(null); // Clear any leftover question (board center shows placeholder)
+    
     setGamePhase('diceMoving');
     const rollValue = Math.floor(Math.random() * 6) + 1;
     setCurrentDiceRollValue(rollValue);
@@ -77,7 +82,7 @@ function App() {
         })
       );
       console.log(`[App.jsx] Dice move complete for Team ${activePlayerId}. Phase: 'questioning'.`);
-      setGamePhase('questioning');
+      setGamePhase('questioning'); // After dice move, present a question
     }, 700);
   }, [activePlayerId, gamePhase]);
 
@@ -87,17 +92,17 @@ function App() {
     if (gamePhase !== 'questioning' || !selectedOption) return;
 
     console.log(`[App.jsx] Team ${activePlayerId} selected: "${selectedOption.optionText}".`);
-    setCurrentConsequence({ // Store just what's needed for display and move
+    setCurrentConsequence({ // Store consequence for display
         consequenceText: selectedOption.consequenceText,
         move: selectedOption.move
     });
-    setCurrentQuestionObj(null); // Clear the question, so only consequence shows
-    setGamePhase('showingConsequence');
+    setCurrentQuestionObj(null); // Hide the question options, only consequence will be shown by Board
+    setGamePhase('showingConsequenceThenMoving'); // New phase to show consequence AND then move
 
-    setTimeout(() => { // After showing consequence, apply move and switch turn
+    // Apply movement after a short delay (to allow consequence text to be seen briefly BEFORE move)
+    // This timeout is for the *visual delay* before the consequence move happens
+    setTimeout(() => {
       console.log(`[App.jsx] Applying consequence move: ${selectedOption.move} for Team ${activePlayerId}.`);
-      setGamePhase('consequenceMoving');
-
       setPlayers(prevPlayers =>
         prevPlayers.map(p => {
           if (p.id === activePlayerId) {
@@ -110,17 +115,18 @@ function App() {
         })
       );
 
-      setTimeout(() => { // Short delay for move "animation"
-        const nextPlayerId = activePlayerId === 1 ? 2 : 1;
-        setActivePlayerId(nextPlayerId);
-        setCurrentDiceRollValue(null);
-        setQuestionIndex(prev => prev + 1);
-        setCurrentConsequence(null); // Clear consequence for next turn
-        setGamePhase('rolling');
-        console.log(`[App.jsx] Turn ended. Next player: Team ${nextPlayerId}. Phase: 'rolling'.`);
-      }, 700); // Consequence move animation delay
+      // After the move, the consequence is still visible.
+      // The turn effectively ends here. The next player's "Roll Dice" action will clear it.
+      const nextPlayerId = activePlayerId === 1 ? 2 : 1;
+      setActivePlayerId(nextPlayerId);
+      setCurrentDiceRollValue(null); // Clear dice display for next player
+      setQuestionIndex(prev => prev + 1); // Prepare for next question for next player
+      // DO NOT clear currentConsequence here. It stays until next player rolls.
+      // DO NOT clear currentQuestionObj, it's already null.
+      setGamePhase('rolling'); // Set to 'rolling' for the NEXT player.
+      console.log(`[App.jsx] Consequence move done. Consequence still visible. Next player: Team ${nextPlayerId}. Phase: 'rolling'.`);
 
-    }, CONSEQUENCE_VISIBILITY_DURATION);
+    }, 1500); // Delay before applying consequence move, allows reading consequence text. Adjust as needed.
   };
 
 
@@ -140,7 +146,7 @@ function App() {
             color={player.color}
             isActive={player.id === activePlayerId && 
                         gamePhase !== 'diceMoving' && 
-                        gamePhase !== 'consequenceMoving' && 
+                        // gamePhase !== 'consequenceMoving' && // This phase no longer exists as separate
                         gamePhase !== 'setup'}
           />
         ))}
@@ -150,13 +156,16 @@ function App() {
         <Board
           players={players}
           config={BOARD_CONFIG}
-          showQuestionArea={gamePhase === 'questioning' || gamePhase === 'showingConsequence'}
-          currentQuestionObj={currentQuestionObj} // This will be null when showing just consequence
+          // Determine what to show in the center of the board
+          showQuestionArea={gamePhase === 'questioning' || gamePhase === 'showingConsequenceThenMoving'}
+          currentQuestionObj={gamePhase === 'questioning' ? currentQuestionObj : null} // Only pass question if in 'questioning'
           activePlayerNameForQuestion={activePlayerForDisplay?.name || ''}
           onAnswerSelect={handleAnswerSelect}
-          isDisplayingConsequence={gamePhase === 'showingConsequence'}
-          consequenceToShow={currentConsequence}
-          disableOptionsDuringConsequence={gamePhase === 'showingConsequence' || gamePhase === 'consequenceMoving'}
+          
+          // Props for MultipleChoiceQuestion to display either question or consequence
+          isDisplayingConsequence={gamePhase === 'showingConsequenceThenMoving'}
+          consequenceToShow={gamePhase === 'showingConsequenceThenMoving' ? currentConsequence : null}
+          disableOptionsDuringConsequence={gamePhase === 'showingConsequenceThenMoving'}
         />
       </div>
 
