@@ -1,32 +1,41 @@
 /* frontend/src/App.css */
-.esl-game-app-layout { /* Changed class name */
+.esl-game-app-layout {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center children like board-wrapper and controls */
-  padding: 15px;
-  background-color: var(--app-bg, #fff); /* Use CSS var if defined in index.css */
-  min-height: 95vh; /* Make app take most of screen height */
+  align-items: center;
+  padding: 10px; /* Reduced overall padding a bit */
+  background-color: var(--app-bg, #fff);
+  min-height: 98vh; /* Use most of viewport height */
   box-sizing: border-box;
+  width: 100%; /* Ensure app layout takes full available width */
 }
 
-.top-player-stats-panel { /* New class for top player panels */
+.top-player-stats-panel {
   display: flex;
   justify-content: space-between;
   width: 100%;
-  max-width: 600px; /* Limit width of player panel container */
-  margin-bottom: 20px; /* Space below player panels */
-  padding: 0 10px; /* Optional padding */
+  max-width: 600px;
+  margin-bottom: 15px;
+  padding: 0 5px; /* Reduced padding */
   box-sizing: border-box;
-  gap: 20px; /* Space between player stat boxes */
+  gap: 15px;
 }
 
-.board-wrapper-main { /* Wrapper to control board width */
-  width: 80%; /* Board area takes 80% of this wrapper's parent width */
-  max-width: 750px; /* Max pixel width for the board area */
-  margin-bottom: 25px; /* Space below board */
-  display: flex; /* Helps if board-area-container needs centering inside */
+.board-wrapper-main {
+  width: 90vw; /* Board wrapper takes 90% of viewport width */
+  /* max-width: 800px;  Set a max-pixel width if you don't want it to get too huge on very large screens */
+  /* min-width: 300px; /* Ensure it doesn't get too small */
+  margin-bottom: 20px;
+  display: flex;
   justify-content: center;
+  flex-grow: 1; /* Allow board wrapper to take available vertical space */
+  min-height: 300px; /* Give it some minimum height so aspect-ratio works */
 }
 
-/* GameControls component already has its own container with styles */
-/* .game-controls-bottom-panel in GameControls.css handles its layout */
+/* GameControls styles are in GameControls.css and its container in App.jsx */
+.game-controls-bottom-panel { /* Target class from GameControls.jsx */
+    padding: 10px 0;
+    margin-top: auto; /* Push controls to the bottom if there's extra space */
+    width: 100%;
+    max-width: 400px; /* Max width for the controls area */
+}

@@ -1,7 +1,7 @@
 // frontend/src/components/Board.jsx
 import React from 'react';
 import Square from './Square';
-import CentralQuestionDisplay from './CentralQuestionDisplay'; // Use new component
+import CentralQuestionDisplay from './CentralQuestionDisplay';
 import './Board.css';
 
 // getSquareStyle function remains the same (36-square, 15x5 grid version)
@@ -23,12 +23,11 @@ const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => {
 
 const Board = ({
   players,
-  config, // { H_GRID_CELLS, V_GRID_CELLS, TOTAL_SQUARES }
-  // Props for the question display
-  showQuestionInBoard, // boolean: true if gamePhase is 'questioning'
-  currentQuestionText,
-  activePlayerNameForQuestion,
-  onQuestionContinue // function to call when "Continue" on question is clicked
+  config,
+  showQuestionInBoard,
+  currentQuestionText, // This should now be correctly populated by App.jsx
+  activePlayerNameForQuestion
+  // onQuestionContinue prop removed
 }) => {
   const squaresCmp = [];
   for (let i = 1; i <= config.TOTAL_SQUARES; i++) {
@@ -40,7 +39,7 @@ const Board = ({
              i === config.H_GRID_CELLS + (config.V_GRID_CELLS - 1) + (config.H_GRID_CELLS -1) ) {
       type = 'corner';
     }
-    if (i===1) type = 'go'; // 'go' styling takes precedence
+    if (i===1) type = 'go';
 
     squaresCmp.push(
       <Square key={i} id={i} style={style} type={type}>
@@ -54,21 +53,20 @@ const Board = ({
   }
 
   return (
-    <div className="board-area-container"> {/* This container might not be needed if App.css handles width */}
+    <div className="board-area-container">
       <div
         className="board-grid-layout"
         style={{
           '--grid-cols': config.H_GRID_CELLS,
           '--grid-rows': config.V_GRID_CELLS,
-          '--square-cell-size': 'auto', // Or a fixed size like '40px'
         }}
       >
         {squaresCmp}
-        <div className="board-center-content-area"> {/* Renamed class */}
+        <div className="board-center-content-area">
             <CentralQuestionDisplay
-              questionText={showQuestionInBoard ? currentQuestionText : null} // Only pass text if showing question
+              questionText={showQuestionInBoard ? currentQuestionText : null}
               playerName={activePlayerNameForQuestion}
-              onContinue={onQuestionContinue}
+              // onContinue prop removed
             />
         </div>
       </div>

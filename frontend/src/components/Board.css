@@ -3,36 +3,46 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%; /* Board itself will take full width of its wrapper from App.css */
+  width: 100%; /* Takes full width of its wrapper (.board-wrapper-main) */
+  height: 100%; /* Takes full height of its wrapper */
 }
 
 .board-grid-layout {
   display: grid;
-  grid-template-columns: repeat(var(--grid-cols), minmax(30px, 1fr)); /* Responsive squares, min 30px */
-  grid-template-rows: repeat(var(--grid-rows), minmax(30px, 1fr)); /* Responsive squares, min 30px */
-  aspect-ratio: var(--grid-cols) / var(--grid-rows); /* Maintain aspect ratio */
-  width: 100%; /* Takes width from .board-wrapper in App.css */
-  max-width: 700px; /* Prevent squares from becoming excessively large */
+  grid-template-columns: repeat(var(--grid-cols), minmax(25px, 1fr)); /* Min square size, then responsive */
+  grid-template-rows: repeat(var(--grid-rows), minmax(25px, 1fr));
+  aspect-ratio: var(--grid-cols) / var(--grid-rows); /* Crucial for maintaining shape */
+  
+  /* Make the grid fill its container, up to a certain size if needed */
+  width: 100%;
+  height: 100%; /* Make it try to fill the height of board-area-container */
+  object-fit: contain; /* If using width/height and aspect-ratio to scale */
+
+
+  max-width: 100%; /* Constrained by board-wrapper-main's max-width */
+  max-height: 80vh; /* Prevent it from getting too tall, adjust as needed */
+
+
   gap: 1px;
-  padding: 6px; /* Slightly smaller padding */
-  background-color: #b0bec5; /* Gaps/border area color */
+  padding: 5px; /* Minimal padding */
+  background-color: #b0bec5;
   border: 2px solid #78909c;
   border-radius: 5px;
-  position: relative; /* For positioning the center content */
+  position: relative;
   box-sizing: border-box;
 }
 
-.board-center-content-area { /* Renamed */
+.board-center-content-area {
   grid-column-start: 2;
-  grid-column-end: calc(var(--grid-cols)); /* Span cols 2 to H_GRID_CELLS-1 */
+  grid-column-end: calc(var(--grid-cols));
   grid-row-start: 2;
-  grid-row-end: calc(var(--grid-rows));   /* Span rows 2 to V_GRID_CELLS-1 */
+  grid-row-end: calc(var(--grid-rows));
   
-  /* Styling for the area itself, CentralQuestionDisplay will fill it */
-  background-color: #cfd8dc; /* Default background if no question */
-  border-radius: 3px; /* Slight rounding for inner area */
-  display: flex; /* To help center CentralQuestionDisplay if it doesn't fill */
+  background-color: #cfd8dc;
+  border-radius: 3px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden; /* Clip content if necessary */
+  overflow: hidden;
+  padding: 5px; /* Padding for the question display itself */
 }

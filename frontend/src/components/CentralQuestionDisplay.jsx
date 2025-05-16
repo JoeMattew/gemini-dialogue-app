@@ -2,12 +2,11 @@
 import React from 'react';
 import './CentralQuestionDisplay.css';
 
-const CentralQuestionDisplay = ({ questionText, playerName, onContinue }) => {
+const CentralQuestionDisplay = ({ questionText, playerName }) => { // Removed onContinue
   if (!questionText) {
-    // This area can show a placeholder when no question is active
     return (
         <div className="central-question-area placeholder">
-            <p>Waiting for next turn...</p>
+            <p>Prepare for your turn!</p> {/* Updated placeholder */}
         </div>
     );
   }
@@ -16,9 +15,7 @@ const CentralQuestionDisplay = ({ questionText, playerName, onContinue }) => {
     <div className="central-question-area active-question">
       <h4>{playerName}'s Question:</h4>
       <p className="central-question-text-content">{questionText}</p>
-      <button onClick={onContinue} className="continue-button">
-        Continue
-      </button>
+      {/* "Continue" button removed */}
     </div>
   );
 };
