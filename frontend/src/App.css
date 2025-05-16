@@ -3,11 +3,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px; /* Reduced overall padding a bit */
+  padding: 10px;
   background-color: var(--app-bg, #fff);
-  min-height: 98vh; /* Use most of viewport height */
+  min-height: 98vh;
   box-sizing: border-box;
-  width: 100%; /* Ensure app layout takes full available width */
+  width: 100%;
 }
 
 .top-player-stats-panel {
@@ -16,25 +16,27 @@
   width: 100%;
   max-width: 600px;
   margin-bottom: 15px;
-  padding: 0 5px; /* Reduced padding */
+  padding: 0 5px;
   box-sizing: border-box;
   gap: 15px;
 }
 
 .board-wrapper-main {
-  width: 90vw; /* Board wrapper takes 90% of viewport width */
-  max-width: 800px; /* Optional: prevent board from getting too huge */
-  margin-bottom: 20px;
+  width: 95vw;         /* Board wrapper takes 95% of viewport width */
+  max-width: 900px;    /* Max pixel width for the board area */
+  margin-bottom: 10px; /* Reduced gap below board */
   display: flex;
   justify-content: center;
-  flex-grow: 1; 
-  min-height: 300px; /* Or a value that works with your aspect ratio */
+  flex-grow: 1; /* Allow board wrapper to take available vertical space */
+  min-height: 300px; /* Give it some minimum height so aspect-ratio works */
+  /* Consider adding a max-height to prevent it from becoming too tall */
+  /* max-height: 75vh; */
 }
 
-/* GameControls styles are in GameControls.css and its container in App.jsx */
 .game-controls-bottom-panel { /* Target class from GameControls.jsx */
     padding: 10px 0;
-    margin-top: auto; /* Push controls to the bottom if there's extra space */
+    margin-top: 5px; /* Reduced gap above controls */
     width: 100%;
     max-width: 400px; /* Max width for the controls area */
+    /* Other styles like display:flex are in GameControls.css */
 }

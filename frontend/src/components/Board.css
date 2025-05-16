@@ -9,23 +9,22 @@
 
 .board-grid-layout {
   display: grid;
-  grid-template-columns: repeat(var(--grid-cols), minmax(25px, 1fr));
-  grid-template-rows: repeat(var(--grid-rows), minmax(25px, 1fr));
-  aspect-ratio: var(--grid-cols) / var(--grid-rows); /* Maintains shape */
-  width: 100%; /* Fills its wrapper */
-  height: 100%; /* Fills its wrapper (if wrapper has defined height or flex-grow) */
-  object-fit: contain; /* Important if wrapper has fixed dimensions */
-  max-width: 100%; /* Ensures it doesn't overflow its 90vw wrapper */
-  max-height: 75vh; /* Example: prevent it from being too tall */
-  /* ... rest of styles ... *
+  grid-template-columns: repeat(var(--grid-cols), minmax(30px, 1fr)); /* Min square size 30px, then responsive */
+  grid-template-rows: repeat(var(--grid-rows), minmax(30px, 1fr));   /* Min square size 30px, then responsive */
+  aspect-ratio: var(--grid-cols) / var(--grid-rows); /* Crucial for maintaining shape */
+  
+  width: 100%;  /* Fill the wrapper */
+  height: auto; /* Let aspect-ratio determine height based on width */
 
-
+  max-width: 100%; /* Already constrained by .board-wrapper-main's max-width */
+  /* You can add max-height here if needed, e.g., max-height: 80vh; */
+  
   gap: 1px;
-  padding: 5px; /* Minimal padding */
-  background-color: #b0bec5;
+  padding: 5px;
+  background-color: #b0bec5; /* Color for the gaps */
   border: 2px solid #78909c;
   border-radius: 5px;
-  position: relative;
+  position: relative; /* For positioning the center content */
   box-sizing: border-box;
 }
 
@@ -35,24 +34,11 @@
   grid-row-start: 2;
   grid-row-end: calc(var(--grid-rows));
   
-  background-color: #cfd8dc;
+  background-color: #cfd8dc; /* Default background when no question */
   border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  padding: 5px; /* Padding for the question display itself */
-}
-
-.board-grid-layout {
-  display: grid;
-  grid-template-columns: repeat(var(--grid-cols), minmax(25px, 1fr));
-  grid-template-rows: repeat(var(--grid-rows), minmax(25px, 1fr));
-  aspect-ratio: var(--grid-cols) / var(--grid-rows); /* Maintains shape */
-  width: 100%; /* Fills its wrapper */
-  height: 100%; /* Fills its wrapper (if wrapper has defined height or flex-grow) */
-  object-fit: contain; /* Important if wrapper has fixed dimensions */
-  max-width: 100%; /* Ensures it doesn't overflow its 90vw wrapper */
-  max-height: 75vh; /* Example: prevent it from being too tall */
-  /* ... rest of styles ... */
+  overflow: hidden; /* Important for child components */
+  padding: 5px; /* Padding for the question display component itself */
 }

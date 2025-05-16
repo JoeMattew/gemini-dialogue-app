@@ -17,10 +17,9 @@ const initialPlayersData = [
   { id: 2, name: 'Team 2', color: 'var(--player-2-color, #e74c3c)', pos: 1 },
 ];
 
-const CONSEQUENCE_DISPLAY_DURATION = 4000; // 4 seconds to show consequence
+const CONSEQUENCE_DISPLAY_DURATION = 4000; // How long consequence text is shown by MCQ
 
 function App() {
-  // Game Phases: 'setup', 'rolling', 'diceMoving', 'questioning', 'showingConsequence', 'consequenceMoving', 'gameOver'
   const [gamePhase, setGamePhase] = useState('setup');
   const [players, setPlayers] = useState(initialPlayersData);
   const [activePlayerId, setActivePlayerId] = useState(1);
@@ -29,7 +28,7 @@ function App() {
   const [gameSettings, setGameSettings] = useState(null);
   const [currentQuestionObj, setCurrentQuestionObj] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [chosenAnswerOption, setChosenAnswerOption] = useState(null); // To store the option object clicked by player
+  const [isProcessingAnswer, setIsProcessingAnswer] = useState(false); // Used by MCQ to show consequence
 
   const handleQuestionsAndSettingsReady = (fetchedQuestions, settings) => {
     setEslQuestions(fetchedQuestions);
@@ -38,11 +37,10 @@ function App() {
     setActivePlayerId(1);
     setCurrentDiceRollValue(null);
     setQuestionIndex(0);
-    setGamePhase('rolling'); // Start with rolling phase for Player 1
+    setGamePhase('rolling');
     console.log("[App.jsx] Setup complete. Phase: 'rolling'.");
   };
 
-  // Effect to select and set the current question when phase is 'questioning'
   useEffect(() => {
     if (gamePhase === 'questioning' && eslQuestions.length > 0) {
       let qIndexToShow = questionIndex;
@@ -52,12 +50,10 @@ function App() {
         setQuestionIndex(0);
       }
       setCurrentQuestionObj(eslQuestions[qIndexToShow]);
-      setChosenAnswerOption(null); // Clear any previously chosen answer for the new question
+      setIsProcessingAnswer(false); // Reset for new question, ready for selection
       console.log(`[App.jsx] Displaying question #${qIndexToShow + 1} for Team ${activePlayerId}`);
-    } else if (gamePhase !== 'questioning' && gamePhase !== 'showingConsequence') {
-      // Clear question if not in a phase that shows it
+    } else if (gamePhase !== 'questioning' && gamePhase !== 'showingConsequence') { // Keep question if showing consequence
       setCurrentQuestionObj(null);
-      setChosenAnswerOption(null);
     }
   }, [gamePhase, activePlayerId, eslQuestions, questionIndex]);
 
@@ -84,48 +80,41 @@ function App() {
         })
       );
       console.log(`[App.jsx] Dice move complete for Team ${activePlayerId}. Phase: 'questioning'.`);
-      setGamePhase('questioning'); // After dice move, present a question
+      setGamePhase('questioning');
     }, 700);
   }, [activePlayerId, gamePhase]);
 
 
-  // Called by MultipleChoiceQuestion when an answer option button is clicked
-  const handleAnswerSelect = (selectedOption) => {
-    if (gamePhase !== 'questioning' || !selectedOption) return;
+  // This function is called by MultipleChoiceQuestion AFTER it has shown the consequence and user clicks "OK/Next Turn"
+  const handleAnswerConsequenceProcessed = (processedOption) => {
+    if (!processedOption) return; // Should not happen if MCQ calls this
+    
+    console.log(`[App.jsx] Consequence processed for Team ${activePlayerId}. Applying move: ${processedOption.move}`);
+    setGamePhase('consequenceMoving');
 
-    console.log(`[App.jsx] Team ${activePlayerId} selected option: "${selectedOption.optionText}"`);
-    setChosenAnswerOption(selectedOption); // Store the chosen option to display its consequence
-    setGamePhase('showingConsequence');    // New phase to explicitly show consequence
+    setPlayers(prevPlayers =>
+      prevPlayers.map(p => {
+        if (p.id === activePlayerId) {
+          let newPos = p.pos + processedOption.move;
+          if (newPos > BOARD_CONFIG.TOTAL_SQUARES) newPos = BOARD_CONFIG.TOTAL_SQUARES;
+          else if (newPos < 1) newPos = 1;
+          return { ...p, pos: newPos };
+        }
+        return p;
+      })
+    );
 
-    // After showing consequence for a duration, apply the move and end turn
+    // Short delay for "animation" of this second move
     setTimeout(() => {
-      console.log(`[App.jsx] Applying consequence move: ${selectedOption.move} for Team ${activePlayerId}.`);
-      setGamePhase('consequenceMoving'); // Indicate consequence move is happening
-
-      setPlayers(prevPlayers =>
-        prevPlayers.map(p => {
-          if (p.id === activePlayerId) {
-            let newPos = p.pos + selectedOption.move;
-            if (newPos > BOARD_CONFIG.TOTAL_SQUARES) newPos = BOARD_CONFIG.TOTAL_SQUARES;
-            else if (newPos < 1) newPos = 1;
-            return { ...p, pos: newPos };
-          }
-          return p;
-        })
-      );
-
-      // Short delay for the consequence move "animation"
-      setTimeout(() => {
         const nextPlayerId = activePlayerId === 1 ? 2 : 1;
         setActivePlayerId(nextPlayerId);
         setCurrentDiceRollValue(null);
         setQuestionIndex(prev => prev + 1);
-        setChosenAnswerOption(null); // Clear chosen option for next turn
-        setGamePhase('rolling'); // Next player starts their turn by rolling
-        console.log(`[App.jsx] Consequence move complete. Next player: Team ${nextPlayerId}. Phase: 'rolling'.`);
-      }, 700); // Consequence move animation delay
-
-    }, CONSEQUENCE_DISPLAY_DURATION);
+        setIsProcessingAnswer(false); // Ready for next player's question cycle
+        setCurrentQuestionObj(null); // Clear current question before next turn
+        setGamePhase('rolling');
+        console.log(`[App.jsx] Consequence move done. Next player: Team ${nextPlayerId}. Phase: 'rolling'.`);
+    }, 700); // "Animation" time for consequence move
   };
 
 
@@ -155,13 +144,11 @@ function App() {
         <Board
           players={players}
           config={BOARD_CONFIG}
-          showQuestionInBoard={gamePhase === 'questioning' || gamePhase === 'showingConsequence'}
+          showQuestionInBoard={gamePhase === 'questioning' || gamePhase === 'showingConsequence' || gamePhase === 'consequenceMoving'}
           currentQuestionObj={currentQuestionObj}
           activePlayerNameForQuestion={activePlayerForDisplay?.name || ''}
-          onAnswerSelect={handleAnswerSelect}
-          isQuestionButtonsDisabled={gamePhase === 'showingConsequence' || gamePhase === 'consequenceMoving'} // Disable options once one is picked
-          isShowingConsequence={gamePhase === 'showingConsequence' || gamePhase === 'consequenceMoving'}
-          chosenOptionForConsequence={chosenAnswerOption}
+          onAnswerSelect={handleAnswerConsequenceProcessed} // MCQ will call this after its internal "OK/Next Turn"
+          isProcessingAnswer={isProcessingAnswer} // This tells MCQ to show consequence and disable its own option buttons
         />
       </div>
 
