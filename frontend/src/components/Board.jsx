@@ -4,8 +4,8 @@ import Square from './Square';
 import MultipleChoiceQuestion from './MultipleChoiceQuestion';
 import './Board.css';
 
-// getSquareStyle function remains the same
-const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => { /* ... as before ... */
+// getSquareStyle function remains the same (36-square, 15x5 grid version)
+const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => {
   let r, c;
   const top_end_id = H_GRID_CELLS;
   const right_side_length = V_GRID_CELLS - 1;
@@ -16,25 +16,20 @@ const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => { /* ... as bef
   else if (squareId > top_end_id && squareId <= right_end_id) { r = 1 + (squareId - top_end_id); c = H_GRID_CELLS; }
   else if (squareId > right_end_id && squareId <= bottom_end_id) { r = V_GRID_CELLS; c = H_GRID_CELLS - (squareId - right_end_id); }
   else if (squareId > bottom_end_id && squareId <= 36) { r = V_GRID_CELLS - (squareId - bottom_end_id); c = 1; }
-  else { return { border: '2px solid orange' }; }
+  else { console.error(`getSquareStyle: Invalid squareId ${squareId}`); return { border: '2px solid orange' }; }
   return { gridRowStart: r, gridColumnStart: c };
 };
 
 const Board = ({
   players,
   config,
-  // Props for question display, controlled by App.jsx
-  showQuestionInBoard, // True during 'questioning' or 'showingConsequence'
+  showQuestionInBoard, // True during 'questioning' phase (controlled by App.jsx)
   currentQuestionObj,
   activePlayerNameForQuestion,
-  onAnswerSelect,
-  isQuestionButtonsDisabled, // To disable MCQ options
-  isShowingConsequence,      // True to show consequence panel
-  chosenOptionForConsequence // The option whose consequence to show
+  onAnswerFinalized // Prop from App.jsx (was onAnswerSelect)
 }) => {
   const squaresCmp = [];
   for (let i = 1; i <= config.TOTAL_SQUARES; i++) {
-    // ... (square generation logic remains the same) ...
     const style = getSquareStyle(i, config.H_GRID_CELLS, config.V_GRID_CELLS);
     let type = '';
     if (i === 1) type = 'go';
@@ -43,7 +38,8 @@ const Board = ({
              i === config.H_GRID_CELLS + (config.V_GRID_CELLS - 1) + (config.H_GRID_CELLS -1) ) {
       type = 'corner';
     }
-    if (i===1) type = 'go';
+    if (i===1) type = 'go'; // 'go' styling takes precedence
+
     squaresCmp.push(
       <Square key={i} id={i} style={style} type={type}>
         {players.map(p => p.pos === i && (
@@ -66,18 +62,15 @@ const Board = ({
       >
         {squaresCmp}
         <div className="board-center-content-area">
-          {(showQuestionInBoard && currentQuestionObj) ? (
+          {showQuestionInBoard && currentQuestionObj ? (
             <MultipleChoiceQuestion
               questionObj={currentQuestionObj}
               playerName={activePlayerNameForQuestion}
-              onAnswerSelect={onAnswerSelect}
-              isButtonsDisabled={isQuestionButtonsDisabled}
-              isShowingConsequence={isShowingConsequence}
-              chosenOptionForConsequence={chosenOptionForConsequence}
+              onAnswerFinalized={onAnswerFinalized} // Pass the handler from App.jsx
             />
           ) : (
             <div className="mcq-area-game placeholder-mcq">
-                <p>Roll the dice to move!</p>
+                <p>Roll the dice to move!</p> {/* Placeholder when no question */}
             </div>
           )}
         </div>

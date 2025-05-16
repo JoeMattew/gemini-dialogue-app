@@ -4,7 +4,7 @@ import Player from './components/Player';
 import Board from './components/Board';
 import GameSetup from './components/GameSetup';
 import GameControls from './components/GameControls';
-import './App.css';
+import './App.css'; // Ensure your App.css has layout styles
 
 const BOARD_CONFIG = {
   H_GRID_CELLS: 15,
@@ -17,18 +17,19 @@ const initialPlayersData = [
   { id: 2, name: 'Team 2', color: 'var(--player-2-color, #e74c3c)', pos: 1 },
 ];
 
-const CONSEQUENCE_DISPLAY_DURATION = 4000; // How long consequence text is shown by MCQ
+// No CONSEQUENCE_DISPLAY_DURATION here, as MCQ handles its own display timing before calling back
 
 function App() {
+  // Game Phases: 'setup', 'rolling', 'diceMoving', 'questioning', 'consequenceMoving', 'gameOver'
   const [gamePhase, setGamePhase] = useState('setup');
   const [players, setPlayers] = useState(initialPlayersData);
   const [activePlayerId, setActivePlayerId] = useState(1);
   const [currentDiceRollValue, setCurrentDiceRollValue] = useState(null);
   const [eslQuestions, setEslQuestions] = useState([]);
   const [gameSettings, setGameSettings] = useState(null);
-  const [currentQuestionObj, setCurrentQuestionObj] = useState(null);
+  const [currentQuestionObj, setCurrentQuestionObj] = useState(null); // Full question object
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [isProcessingAnswer, setIsProcessingAnswer] = useState(false); // Used by MCQ to show consequence
+  // isProcessingAnswer is removed from App state, as MCQ manages its own internal state for showing consequence
 
   const handleQuestionsAndSettingsReady = (fetchedQuestions, settings) => {
     setEslQuestions(fetchedQuestions);
@@ -37,22 +38,23 @@ function App() {
     setActivePlayerId(1);
     setCurrentDiceRollValue(null);
     setQuestionIndex(0);
-    setGamePhase('rolling');
+    setGamePhase('rolling'); // Start with rolling phase for Player 1
     console.log("[App.jsx] Setup complete. Phase: 'rolling'.");
   };
 
+  // Effect to select and set the current question when phase is 'questioning'
   useEffect(() => {
     if (gamePhase === 'questioning' && eslQuestions.length > 0) {
       let qIndexToShow = questionIndex;
       if (qIndexToShow >= eslQuestions.length) {
         console.warn("[App.jsx] All questions used. Recycling.");
         qIndexToShow = 0;
-        setQuestionIndex(0);
+        setQuestionIndex(0); // Reset index for next cycle
       }
-      setCurrentQuestionObj(eslQuestions[qIndexToShow]);
-      setIsProcessingAnswer(false); // Reset for new question, ready for selection
+      setCurrentQuestionObj(eslQuestions[qIndexToShow]); // Set the full question object
       console.log(`[App.jsx] Displaying question #${qIndexToShow + 1} for Team ${activePlayerId}`);
-    } else if (gamePhase !== 'questioning' && gamePhase !== 'showingConsequence') { // Keep question if showing consequence
+    } else if (gamePhase !== 'questioning') {
+      // Clear question if not in questioning phase to ensure placeholder shows in Board center
       setCurrentQuestionObj(null);
     }
   }, [gamePhase, activePlayerId, eslQuestions, questionIndex]);
@@ -65,7 +67,7 @@ function App() {
     const rollValue = Math.floor(Math.random() * 6) + 1;
     setCurrentDiceRollValue(rollValue);
 
-    setTimeout(() => {
+    setTimeout(() => { // Simulate dice roll and initial move
       console.log(`[App.jsx] Team ${activePlayerId} rolled ${rollValue}. Moving (dice).`);
       setPlayers(prevPlayers =>
         prevPlayers.map(p => {
@@ -80,22 +82,37 @@ function App() {
         })
       );
       console.log(`[App.jsx] Dice move complete for Team ${activePlayerId}. Phase: 'questioning'.`);
-      setGamePhase('questioning');
-    }, 700);
+      setGamePhase('questioning'); // After dice move, present a question
+    }, 700); // Dice move animation delay
   }, [activePlayerId, gamePhase]);
 
 
-  // This function is called by MultipleChoiceQuestion AFTER it has shown the consequence and user clicks "OK/Next Turn"
-  const handleAnswerConsequenceProcessed = (processedOption) => {
-    if (!processedOption) return; // Should not happen if MCQ calls this
-    
-    console.log(`[App.jsx] Consequence processed for Team ${activePlayerId}. Applying move: ${processedOption.move}`);
-    setGamePhase('consequenceMoving');
+  // This function is called by MultipleChoiceQuestion's "OK / Next Turn" button,
+  // AFTER the player has seen the consequence.
+  const handleAnswerFinalized = (finalizedOption) => {
+    console.log("[App.jsx] handleAnswerFinalized CALLED. Option selected by player:", finalizedOption);
 
+    if (!finalizedOption || typeof finalizedOption.move === 'undefined') {
+      console.error("[App.jsx] Invalid option received in handleAnswerFinalized:", finalizedOption);
+      // Failsafe: If something went wrong, move to next player's rolling phase to avoid getting stuck
+      const nextPlayerIdOnError = activePlayerId === 1 ? 2 : 1;
+      setActivePlayerId(nextPlayerIdOnError);
+      setQuestionIndex(prev => prev + 1);
+      setCurrentQuestionObj(null); // Clear question
+      setGamePhase('rolling');
+      console.warn("[App.jsx] Invalid option from MCQ. Resetting to rolling for next player.");
+      return;
+    }
+
+    setGamePhase('consequenceMoving'); // Indicate game is now applying the consequence move
+    console.log(`[App.jsx] Applying consequence move: ${finalizedOption.move} for Team ${activePlayerId}.`);
+
+    // Apply the move from the consequence
     setPlayers(prevPlayers =>
       prevPlayers.map(p => {
         if (p.id === activePlayerId) {
-          let newPos = p.pos + processedOption.move;
+          let newPos = p.pos + finalizedOption.move;
+          // Boundary checks for the new position
           if (newPos > BOARD_CONFIG.TOTAL_SQUARES) newPos = BOARD_CONFIG.TOTAL_SQUARES;
           else if (newPos < 1) newPos = 1;
           return { ...p, pos: newPos };
@@ -103,17 +120,17 @@ function App() {
         return p;
       })
     );
-
-    // Short delay for "animation" of this second move
+    
+    // Short delay for the "animation" or visual registration of the consequence move
     setTimeout(() => {
         const nextPlayerId = activePlayerId === 1 ? 2 : 1;
         setActivePlayerId(nextPlayerId);
-        setCurrentDiceRollValue(null);
-        setQuestionIndex(prev => prev + 1);
-        setIsProcessingAnswer(false); // Ready for next player's question cycle
-        setCurrentQuestionObj(null); // Clear current question before next turn
-        setGamePhase('rolling');
-        console.log(`[App.jsx] Consequence move done. Next player: Team ${nextPlayerId}. Phase: 'rolling'.`);
+        setCurrentDiceRollValue(null);    // Clear dice display for next player
+        setQuestionIndex(prev => prev + 1); // Prepare for next question
+        setCurrentQuestionObj(null);      // Clear current question object
+
+        console.log(`[App.jsx] Consequence move done. Next player: Team ${nextPlayerId}. Phase set to 'rolling'.`);
+        setGamePhase('rolling'); // Next player's turn starts with an opportunity to roll
     }, 700); // "Animation" time for consequence move
   };
 
@@ -144,11 +161,11 @@ function App() {
         <Board
           players={players}
           config={BOARD_CONFIG}
-          showQuestionInBoard={gamePhase === 'questioning' || gamePhase === 'showingConsequence' || gamePhase === 'consequenceMoving'}
+          showQuestionInBoard={gamePhase === 'questioning'} // Show MCQ only in 'questioning' phase
           currentQuestionObj={currentQuestionObj}
           activePlayerNameForQuestion={activePlayerForDisplay?.name || ''}
-          onAnswerSelect={handleAnswerConsequenceProcessed} // MCQ will call this after its internal "OK/Next Turn"
-          isProcessingAnswer={isProcessingAnswer} // This tells MCQ to show consequence and disable its own option buttons
+          onAnswerFinalized={handleAnswerFinalized} // Pass the correct handler
+          // Props like isQuestionButtonsDisabled, isShowingConsequence, chosenOptionForConsequence are now internal to MCQ
         />
       </div>
 
@@ -156,7 +173,7 @@ function App() {
         currentDiceRoll={currentDiceRollValue}
         onRollDice={handleRollDice}
         activePlayerName={activePlayerForDisplay?.name || ''}
-        isRollDisabled={gamePhase !== 'rolling'}
+        isRollDisabled={gamePhase !== 'rolling'} // Roll button active only in 'rolling' phase
       />
     </div>
   );
