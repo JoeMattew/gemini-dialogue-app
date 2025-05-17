@@ -23,15 +23,9 @@ const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => { /* ... as bef
 const Board = ({
   players,
   config,
-  // Props from App.jsx that determine what's shown in the center
-  showQuestionArea,          // True if center should show MCQ content (question or consequence)
-  currentQuestionObj,        // The question object (if showing question)
-  activePlayerNameForQuestion, // Name of player for whom question/consequence is relevant
+  boardCenterContent, // { type: 'placeholder'|'question'|'consequence', content: any, playerName: string }
   onAnswerSelect,
-  
-  isDisplayingConsequence,   // True if MCQ should be in "show consequence" mode
-  consequenceToShow,         // The {consequenceText, move} object
-  disableOptions             // True if MCQ option buttons should be disabled
+  disableOptions
 }) => {
   const squaresCmp = [];
   for (let i = 1; i <= config.TOTAL_SQUARES; i++) {
@@ -56,6 +50,45 @@ const Board = ({
     );
   }
 
+  let displayContent = (
+    <div className="mcq-area-game placeholder-mcq">
+      <p>{boardCenterContent?.content || "Roll the dice!"}</p> {/* Default placeholder */}
+    </div>
+  );
+
+  if (boardCenterContent) {
+    if (boardCenterContent.type === 'question' && boardCenterContent.content) {
+      displayContent = (
+        <MultipleChoiceQuestion
+          questionObj={boardCenterContent.content}
+          playerName={boardCenterContent.playerName}
+          onAnswerSelect={onAnswerSelect}
+          disableOptions={disableOptions}
+          isDisplayingConsequence={false} // Not displaying consequence when it's a question
+          consequenceToShow={null}
+        />
+      );
+    } else if (boardCenterContent.type === 'consequence' && boardCenterContent.content) {
+      displayContent = (
+        <MultipleChoiceQuestion
+          questionObj={null} // No question, just consequence
+          playerName={boardCenterContent.playerName} // Player who answere
+          onAnswerSelect={() => {}} // No action needed from MCQ in this mode
+          isDisplayingConsequence={true}
+          consequenceToShow={boardCenterContent.content} // { consequenceText, move }
+          disableOptions={true} // Options are irrelevant here
+        />
+      );
+    } else if (boardCenterContent.type === 'placeholder') {
+        displayContent = (
+            <div className="mcq-area-game placeholder-mcq">
+                <p>{boardCenterContent.content || "Roll the dice!"}</p>
+            </div>
+        );
+    }
+  }
+
+
   return (
     <div className="board-area-container">
       <div
@@ -67,20 +100,7 @@ const Board = ({
       >
         {squaresCmp}
         <div className="board-center-content-area">
-          {showQuestionArea ? (
-            <MultipleChoiceQuestion
-              questionObj={currentQuestionObj} // Will be null if isDisplayingConsequence is true
-              playerName={activePlayerNameForQuestion}
-              onAnswerSelect={onAnswerSelect}
-              isDisplayingConsequence={isDisplayingConsequence}
-              consequenceToShow={consequenceToShow}
-              disableOptions={disableOptions}
-            />
-          ) : (
-            <div className="mcq-area-game placeholder-mcq">
-                <p>Roll the dice!</p>
-            </div>
-          )}
+          {displayContent}
         </div>
       </div>
     </div>
