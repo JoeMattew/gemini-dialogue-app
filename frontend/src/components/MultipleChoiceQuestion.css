@@ -6,17 +6,23 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px 10px; /* Reduced padding */
+  padding: 10px 15px;
   box-sizing: border-box;
   border-radius: 5px;
 }
 
-.mcq-area-game.active-mcq,
-.mcq-area-game.consequence-display-active { /* Style for when question or consequence is active */
+.mcq-area-game.active-mcq { /* When showing question + options */
   background-color: rgba(236, 239, 241, 0.98);
   border: 1px solid #b0bec5;
   box-shadow: 0 1px 4px rgba(0,0,0,0.07);
 }
+
+.mcq-area-game.consequence-display-only { /* When showing only consequence */
+  background-color: rgba(200, 230, 201, 0.9); /* Light green for consequence, consistent */
+  border: 1px solid #66bb6a;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+
 
 .mcq-area-game.placeholder-mcq p {
     font-style: italic;
@@ -24,22 +30,21 @@
     font-size: 1.1em;
 }
 
-.mcq-area-game h4 { /* Player name title */
+.mcq-area-game h4 { /* Player name title (only for question display) */
   margin: 0 0 8px 0;
-  font-size: 1em; /* Slightly smaller */
+  font-size: 1.05em;
   color: var(--button-primary-bg, #007bff);
   font-weight: 600;
 }
 
 .mcq-question-text-game {
-  font-size: 1.1em; /* << REDUCED to fit better */
+  font-size: 1.15em;
   color: var(--text-color, #213547);
-  line-height: 1.3;
+  line-height: 1.35;
   margin: 0 0 12px 0;
   text-align: center;
   width: 100%;
   font-weight: 500;
-  /* To prevent overflow with no scroll, text needs to be concise */
 }
 
 .mcq-options-game {
@@ -47,17 +52,17 @@
   gap: 8px;
   width: 100%;
   justify-content: center;
-  flex-wrap: wrap;
+  flex-wrap: wrap; /* Allow buttons to wrap */
 }
 
 .mcq-options-game.horizontal {
   flex-direction: row;
 }
 .mcq-options-game.horizontal .mcq-option-button-game {
-    flex: 1 1 100px;
-    max-width: 160px; /* Max width for each option button */
-    padding: 8px 10px; /* Slightly smaller padding */
-    font-size: 0.85em;  /* << REDUCED */
+    flex: 1 1 110px; /* Adjust base size */
+    max-width: 170px;
+    padding: 9px 11px;
+    font-size: 0.9em;
 }
 
 .mcq-option-button-game {
@@ -70,32 +75,36 @@
   text-align: center;
 }
 .mcq-option-button-game:disabled {
-    opacity: 0.5; /* More prominent disabled state */
+    opacity: 0.5;
     cursor: not-allowed;
-    background-color: #adb5bd; /* Grey when disabled */
+    background-color: #adb5bd;
 }
 .mcq-option-button-game:hover:not(:disabled) {
   opacity: 0.85;
 }
 
-/* Styles for consequence display (no chosen option text, just consequence) */
-.mcq-consequence-text-game {
-  font-size: 1.1em; /* << REDUCED */
-  margin: 0 0 5px 0;
+/* Styles for consequence display (ONLY consequence text and move) */
+.mcq-consequence-text-only { /* Class for the main consequence text */
+  font-size: 1.2em; /* Prominent consequence text */
+  margin: 0 0 8px 0;
   font-weight: 500;
-  color: #333; /* Darker text for consequence */
+  color: #263238; /* Darker, serious tone for consequence */
+  text-align: center;
 }
 
-.mcq-consequence-move-game {
-  font-size: 1em; /* << REDUCED */
-  margin: 0 0 8px 0;
-  color: #00796b;
+.mcq-consequence-move-only { /* Class for the move instruction */
+  font-size: 1.05em;
+  margin: 0 0 10px 0;
+  color: #00695c; /* Strong teal */
   font-weight: bold;
+  text-align: center;
 }
-.processing-move-text { /* "Applying action..." */
+
+.processing-move-text { /* "Applying action..." - can be removed if not desired */
     font-size: 0.85em;
     font-style: italic;
-    color: #444;
+    color: #555;
     margin-top: 5px;
+    text-align: center;
 }
-/* Removed .mcq-proceed-button and .mcq-chosen-option-text styles */
+/* Removed .mcq-proceed-button, .mcq-consequence-game (now .consequence-display-only), .mcq-chosen-option-text styles */

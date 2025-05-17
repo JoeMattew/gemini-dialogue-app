@@ -23,9 +23,15 @@ const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => { /* ... as bef
 const Board = ({
   players,
   config,
-  boardCenterContent, // Unified prop: { type: 'question'/'consequence', content: {...}, forPlayerName: "..." } or null
+  // Props from App.jsx that determine what's shown in the center
+  showQuestionArea,          // True if center should show MCQ content (question or consequence)
+  currentQuestionObj,        // The question object (if showing question)
+  activePlayerNameForQuestion, // Name of player for whom question/consequence is relevant
   onAnswerSelect,
-  disableOptions      // To disable MCQ option buttons
+  
+  isDisplayingConsequence,   // True if MCQ should be in "show consequence" mode
+  consequenceToShow,         // The {consequenceText, move} object
+  disableOptions             // True if MCQ option buttons should be disabled
 }) => {
   const squaresCmp = [];
   for (let i = 1; i <= config.TOTAL_SQUARES; i++) {
@@ -50,22 +56,6 @@ const Board = ({
     );
   }
 
-  let contentForMCQ = null;
-  let consequenceData = null;
-  let displayPlayerName = '';
-  let showMCQPlaceholder = true;
-
-  if (boardCenterContent) {
-    displayPlayerName = boardCenterContent.forPlayerName;
-    if (boardCenterContent.type === 'question') {
-      contentForMCQ = boardCenterContent.content; // This is the full question object
-      showMCQPlaceholder = false;
-    } else if (boardCenterContent.type === 'consequence') {
-      consequenceData = boardCenterContent.content; // This is { consequenceText, move }
-      showMCQPlaceholder = false;
-    }
-  }
-
   return (
     <div className="board-area-container">
       <div
@@ -77,19 +67,19 @@ const Board = ({
       >
         {squaresCmp}
         <div className="board-center-content-area">
-          {showMCQPlaceholder ? (
-            <div className="mcq-area-game placeholder-mcq">
-              <p>Roll the dice!</p>
-            </div>
-          ) : (
+          {showQuestionArea ? (
             <MultipleChoiceQuestion
-              questionObj={contentForMCQ} // Will be null if showing consequence
-              playerName={displayPlayerName}
+              questionObj={currentQuestionObj} // Will be null if isDisplayingConsequence is true
+              playerName={activePlayerNameForQuestion}
               onAnswerSelect={onAnswerSelect}
-              isDisplayingConsequence={!!consequenceData} // True if consequenceData is not null
-              consequenceToShow={consequenceData}
-              disableOptions={disableOptions || !!consequenceData} // Disable if explicitly told or if showing consequence
+              isDisplayingConsequence={isDisplayingConsequence}
+              consequenceToShow={consequenceToShow}
+              disableOptions={disableOptions}
             />
+          ) : (
+            <div className="mcq-area-game placeholder-mcq">
+                <p>Roll the dice!</p>
+            </div>
           )}
         </div>
       </div>

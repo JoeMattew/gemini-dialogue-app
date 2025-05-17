@@ -1,72 +1,57 @@
 // frontend/src/components/MultipleChoiceQuestion.jsx
-// THIS IS THE VERSION THAT MANAGES ITS OWN CONSEQUENCE DISPLAY INTERNALLY
-import React, { useState, useEffect } from 'react';
+import React from 'react'; // Removed useState, useEffect as it's simpler now
 import './MultipleChoiceQuestion.css';
 
 const MultipleChoiceQuestion = ({
-  questionObj,
+  questionObj,          // Full question object {text, options} - null if showing only consequence
   playerName,
-  onAnswerFinalized // App.jsx will pass its handleAnswerSelect as this prop
+  onAnswerSelect,       // Callback when an option is clicked
+  isDisplayingConsequence, // Boolean: true if App wants to show consequence
+  consequenceToShow,     // Object: { consequenceText, move }
+  disableOptions         // Boolean: true if options should be disabled
 }) => {
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [showConsequencePanel, setShowConsequencePanel] = useState(false);
 
-  useEffect(() => {
-    setSelectedOption(null);
-    setShowConsequencePanel(false);
-  }, [questionObj]);
-
-  if (!questionObj || !questionObj.text || !Array.isArray(questionObj.options)) {
+  // Mode 1: Displaying ONLY the consequence
+  if (isDisplayingConsequence && consequenceToShow) {
     return (
-      <div className="mcq-area-game placeholder-mcq">
-        <p>Player landed on a square!</p>
+      <div className="mcq-area-game consequence-display-only"> {/* New class for specific styling */}
+        {/* No player name or question text repeated here */}
+        <p className="mcq-consequence-text-only">{consequenceToShow.consequenceText}</p>
+        <p className="mcq-consequence-move-only">
+          Action: {consequenceToShow.move > 0 ? `Move +${consequenceToShow.move}` : (consequenceToShow.move < 0 ? `Move ${consequenceToShow.move}` : 'Stay put')}
+        </p>
+        {/* "Applying action..." text can be controlled by a prop from App.jsx if needed, or removed */}
+        {/* <p className="processing-move-text">Applying action...</p> */}
       </div>
     );
   }
 
-  const handleOptionClick = (option) => {
-    if (showConsequencePanel) return;
-    setSelectedOption(option);
-    setShowConsequencePanel(true);
-  };
-
-  const handleProceedAfterConsequence = () => {
-    if (selectedOption) {
-      onAnswerFinalized(selectedOption); // This calls App.jsx's function
-    }
-  };
-
-  return (
-    <div className="mcq-area-game active-mcq">
-      <h4>{playerName}'s Question:</h4>
-      <p className="mcq-question-text-game">{questionObj.text}</p>
-
-      {!showConsequencePanel && (
+  // Mode 2: Displaying the question and options
+  if (questionObj && questionObj.text && Array.isArray(questionObj.options)) {
+    return (
+      <div className="mcq-area-game active-mcq">
+        <h4>{playerName}'s Question:</h4>
+        <p className="mcq-question-text-game">{questionObj.text}</p>
         <div className="mcq-options-game horizontal">
           {questionObj.options.map((opt, index) => (
             <button
               key={index}
               className="mcq-option-button-game"
-              onClick={() => handleOptionClick(opt)}
+              onClick={() => onAnswerSelect(opt)} // Immediately call back with chosen option
+              disabled={disableOptions}
             >
               {opt.optionText}
             </button>
           ))}
         </div>
-      )}
+      </div>
+    );
+  }
 
-      {showConsequencePanel && selectedOption && (
-        <div className="mcq-consequence-game">
-          <p className="mcq-chosen-option-text">You chose: "{selectedOption.optionText}"</p>
-          <p className="mcq-consequence-text-game">{selectedOption.consequenceText}</p>
-          <p className="mcq-consequence-move-game">
-            Action: {selectedOption.move > 0 ? `Move +${selectedOption.move}` : (selectedOption.move < 0 ? `Move ${selectedOption.move}` : 'Stay put')}
-          </p>
-          <button onClick={handleProceedAfterConsequence} className="mcq-proceed-button">
-            OK / Next Turn
-          </button>
-        </div>
-      )}
+  // Fallback/Placeholder if neither question nor consequence is ready
+  return (
+    <div className="mcq-area-game placeholder-mcq">
+      <p>Loading question or action...</p>
     </div>
   );
 };
