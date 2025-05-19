@@ -5,31 +5,28 @@
   align-items: center;
   width: 100%;
   height: 100%;
+  background-color: transparent; /* << Ensure no white field here */
 }
 
 .board-grid-layout {
   display: grid;
-  /* Original V_GRID_CELLS = 5. Target square height: 55px (from last attempt)
-     25% shorter: 55px * 0.75 = ~41px. Let's try minmax(35px, 1fr) for rows.
-     For width, minmax(40px, 1fr) was okay.
-  */
-  grid-template-columns: repeat(var(--grid-cols), minmax(35px, 1fr)); /* Slightly smaller min for width */
-  grid-template-rows: repeat(var(--grid-rows), minmax(40px, 1fr));    /* << ADJUSTED min square height */
-  
+  grid-template-columns: repeat(var(--grid-cols), minmax(35px, 1fr));
+  grid-template-rows: repeat(var(--grid-rows), minmax(40px, 1fr));
   aspect-ratio: var(--grid-cols) / var(--grid-rows);
   
   width: 100%;
   height: auto; 
 
-  max-width: 100%; /* Constrained by .board-wrapper-main */
+  max-width: 100%;
   
-  gap: 1px;
-  padding: 5px;
-  background-color: #b0bec5;
-  border: 2px solid #78909c;
-  border-radius: 8px;
+  gap: 2px; /* Slightly larger gap for definition on dark bg */
+  padding: 8px; /* Padding around squares */
+  background-color: var(--board-padding-bg); /* Dark background for gaps */
+  border: 2px solid var(--board-border-color); /* Border for the whole board */
+  border-radius: 10px; /* More rounded board corners */
   position: relative;
   box-sizing: border-box;
+  box-shadow: 0 0 15px rgba(0,0,0,0.3); /* Optional shadow for depth */
 }
 
 .board-center-content-area {
@@ -38,14 +35,13 @@
   grid-row-start: 2;
   grid-row-end: calc(var(--grid-rows));
   
-  background-color: #dde3e6; /* Consistent background */
-  border-radius: 4px;
-  display: flex; /* Helps with alignment of child */
-  flex-direction: column; /* Stack question and consequence if shown together */
+  background-color: #2a2a2a; /* Darker background for center area */
+  border-radius: 6px; /* Rounded corners for center area */
+  display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden; /* Crucial to prevent scrollbars */
-  padding: 8px 10px; /* Adjusted padding */
+  overflow: hidden;
+  padding: 8px 10px;
   box-sizing: border-box;
-  text-align: center; /* Center text by default */
+  border: 1px solid #444; /* Subtle border for center area */
 }

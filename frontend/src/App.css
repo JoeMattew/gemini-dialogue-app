@@ -3,8 +3,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px;
-  background-color: var(--app-bg, #fff);
+  padding: 10px 5px; /* Minimal overall padding */
+  background-color: transparent; /* Let body background show through */
   min-height: 98vh;
   box-sizing: border-box;
   width: 100%;
@@ -14,28 +14,27 @@
   display: flex;
   justify-content: space-between;
   width: 100%;
-  max-width: 650px;
-  margin-bottom: 15px;
-  padding: 0 5px;
+  max-width: 600px;
+  margin-bottom: 5px; /* << SIGNIFICANTLY REDUCED gap below player stats */
+  padding: 0; /* Remove padding if not needed */
   box-sizing: border-box;
-  gap: 20px;
+  gap: 15px;
 }
 
 .board-wrapper-main {
-  width: 90vw;         /* Board wrapper is 90% of viewport width */
-  max-width: 1000px;   /* Max pixel width for the board area */
-  margin-bottom: 10px; /* Gap below board */
+  width: 95vw; /* Board wrapper remains wide */
+  max-width: 950px; /* Adjust max width if needed */
+  margin-bottom: 5px;  /* << SIGNIFICANTLY REDUCED gap below board */
   display: flex;
   justify-content: center;
   align-items: center;
   flex-grow: 1; 
-  min-height: 0; /* Remove min-height to let board scale more freely with aspect ratio */
-                   /* Or set a more dynamic min-height if needed, e.g., 50vh */
+  min-height: 0; /* Let content define height */
 }
 
 .game-controls-bottom-panel {
-    padding: 10px 0;
-    margin-top: 0px;
+    padding: 5px 0; /* Minimal padding */
+    margin-top: 0px; /* << NO GAP above controls, effectively bringing it up */
     width: 100%;
     max-width: 400px;
 }

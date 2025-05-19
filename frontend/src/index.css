@@ -1,46 +1,56 @@
 /* frontend/src/index.css */
+:root {
+  --player-1-color: #0096FF; /* Brighter Blue for dark bg */
+  --player-2-color: #FF3131; /* Brighter Red for dark bg */
+  --border-color-light: #555; /* Darker for dark bg */
+  --border-color-dark: #333;  /* Even darker for dark bg */
+  --square-bg: #404040;       /* Dark gray for squares */
+  --square-bg-go: #38761D;    /* Darker Green */
+  --square-bg-corner: #505050;/* Slightly lighter dark gray */
+  --app-bg: #121212;          /* Main black background */
+  --text-color: #E0E0E0;      /* Light text for dark bg */
+  --text-color-darker: #B0B0B0; /* For less prominent text */
+  --button-primary-bg: #007bff; /* Keep blue, or choose a brighter color */
+  --button-primary-text: white;
+  --board-padding-bg: #282828; /* Background for board padding/gaps */
+  --board-border-color: #666;
+}
+
 body {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
+  line-height: 1.6;
   font-weight: 400;
   margin: 0;
   display: flex;
   justify-content: center;
-  align-items: center;
   min-height: 100vh;
-  background-color: #f0f2f5; /* Light gray background for the page */
+  background-color: var(--app-bg); /* Black background */
+  color: var(--text-color);         /* Default light text */
 }
 
 #root {
   width: 100%;
-  max-width: 600px; /* Max width for the app content */
-  margin: 2rem auto; /* Centering and some margin */
-  padding: 1rem;     /* Padding inside the root */
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1rem;
+  box-sizing: border-box;
   text-align: center;
 }
 
-:root { /* CSS Variables for theming */
-    --dialogue-bg: #ffffff;
-    --dialogue-text: #213547;
-    --input-bg: #f8f9fa;
-    --input-border: #ced4da;
-    --button-bg: #007bff;
-    --button-text: white;
-    --response-area-bg: #e9ecef;
-    --error-text: #dc3545;
+button {
+  padding: 8px 15px;
+  font-size: 0.95em;
+  cursor: pointer;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: background-color 0.2s, border-color 0.2s, opacity 0.2s;
 }
 
-@media (prefers-color-scheme: dark) {
-    body {
-        background-color: #1a1a1a; /* Darker page background */
-    }
-    :root {
-        --dialogue-bg: #2f2f2f;
-        --dialogue-text: rgba(255, 255, 255, 0.87);
-        --input-bg: #3a3a3a;
-        --input-border: #555555;
-        --button-bg: #0d6efd; /* A slightly different blue for dark mode */
-        --response-area-bg: #343a40;
-        --error-text: #ff6b6b; /* Lighter red for dark mode */
-    }
+button:disabled {
+  opacity: 0.5; /* More noticeable disabled state */
+  cursor: not-allowed;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-color); /* Ensure headings are light too */
 }

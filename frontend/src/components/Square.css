@@ -1,62 +1,81 @@
 /* frontend/src/components/Square.css */
 .game-square {
-  border: 1px solid var(--border-color-dark, #999);
+  border: 1px solid var(--border-color-dark);
+  border-radius: 6px; /* << ROUNDED BORDERS for squares */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
-  background-color: var(--square-bg, #f8f9fa);
+  background-color: var(--square-bg);
   position: relative;
-  padding: 3px;
+  padding: 4px; /* Increased padding slightly */
   overflow: hidden;
-  /* Actual size will be set by the CSS Grid in Board.css */
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
 }
 
-.game-square.go { background-color: var(--square-bg-go, lightgreen); }
-.game-square.corner { background-color: var(--square-bg-corner, #e9ecef); }
-/* Add more types like .chance, .property-color later if needed */
+/* Optional: Add a hover effect to squares */
+/* .game-square:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+} */
+
+.game-square.go { background-color: var(--square-bg-go); color: white; }
+.game-square.go .square-id-display { color: white; } /* Ensure ID is visible on dark Go */
+
+.game-square.corner { background-color: var(--square-bg-corner); }
 
 .square-id-display {
-  font-size: 0.65em; /* Smaller ID */
-  color: #444;
+  font-size: 0.7em; /* Keep ID size reasonable */
+  color: var(--text-color-darker); /* Lighter text for dark square bg */
   align-self: flex-start;
   font-weight: bold;
-  padding: 1px 2px; /* Slight padding for ID */
+  padding: 1px 2px;
   line-height: 1;
 }
 
 .player-tokens-on-square {
   display: flex;
-  gap: 2px;
+  gap: 3px;
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 18px; /* Adjusted for smaller tokens */
+  min-height: 28px;
   flex-wrap: wrap;
+  position: relative; /* For positioning glow absolutely if needed */
+  z-index: 1; /* Ensure tokens are above square background */
 }
+/* frontend/src/components/Square.css */
+/* ... other styles ... */
 
-/* Player Token GFX - graphical representation of player on a square */
-.player-tokens-on-square {
-  display: flex;
-  gap: 3px; /* Slightly more gap for bigger tokens */
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 25px; /* Ensure space for bigger tokens */
-  flex-wrap: wrap;
+@keyframes tokenGlow { /* Ensure this animation is defined */
+  0% { box-shadow: 0 0 3px 1px var(--token-glow-color, rgba(255, 255, 255, 0.7)), 0px 2px 4px rgba(0,0,0,0.5); }
+  50% { box-shadow: 0 0 8px 3px var(--token-glow-color, rgba(255, 255, 255, 0.9)), 0px 2px 4px rgba(0,0,0,0.5); }
+  100% { box-shadow: 0 0 3px 1px var(--token-glow-color, rgba(255, 255, 255, 0.7)), 0px 2px 4px rgba(0,0,0,0.5); }
 }
 
 .player-token-gfx {
-  width: 20px; /* << INCREASED SIZE */
-  height: 20px; /* << INCREASED SIZE */
+  /* ... base styles for token ... */
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  border: 1px solid black;
+  border: 2px solid #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7em; /* Adjust if ID inside token needs to be bigger/smaller */
+  font-size: 0.8em;
   font-weight: bold;
   color: white;
-  box-shadow: 0px 1px 3px rgba(0,0,0,0.5);
+  box-shadow: 0px 2px 4px rgba(0,0,0,0.5);
+  text-shadow: 0 0 2px black;
+  position: relative;
+  z-index: 2;
+  transition: transform 0.2s ease-in-out;
+}
+
+.player-token-gfx.glowing { /* Style for the glowing token */
+  animation: tokenGlow 1.5s infinite ease-in-out;
+  transform: scale(1.1);
+  z-index: 3; 
+  /* border-color: gold; /* Optional: if you want border to change too */
 }

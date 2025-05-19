@@ -3,23 +3,35 @@
   padding: 10px 15px;
   border-width: 2px;
   border-style: solid;
+  border-color: var(--border-color-light);
   border-radius: 6px;
   text-align: center;
-  background-color: var(--dialogue-bg, #fff);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  background-color: #282828;
+  color: var(--text-color);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   min-width: 120px;
-  max-width: 160px; /* Control max width for smaller look */
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  max-width: 160px;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease; /* Added transform */
+}
+
+@keyframes subtleGlow {
+  0% { box-shadow: 0 0 5px 0px var(--active-glow-color, rgba(255, 255, 255, 0.3)); }
+  50% { box-shadow: 0 0 15px 5px var(--active-glow-color, rgba(255, 255, 255, 0.5)); }
+  100% { box-shadow: 0 0 5px 0px var(--active-glow-color, rgba(255, 255, 255, 0.3)); }
 }
 
 .player-stats-window.active {
-  box-shadow: 0 0 8px 1px var(--border-color-active, rgba(0, 123, 255, 0.3));
-  /* Active border color set via inline style */
+  /* Border color is set via inline style in Player.jsx using player.color */
+  /* The box-shadow will use the player's color via a CSS variable set in Player.jsx */
+  /* We can use a fallback if the variable isn't set, but ideally it is. */
+  animation: subtleGlow 2s infinite ease-in-out;
+  transform: scale(1.03); /* Slightly larger when active */
+  /* Ensure border color is bright for active player on dark theme */
 }
 
 .player-stats-window h3 {
   margin: 0;
   font-size: 1.1em;
-  color: var(--dialogue-text, #333);
+  color: var(--text-color);
   font-weight: 600;
 }

@@ -4,12 +4,12 @@ import Player from './components/Player';
 import Board from './components/Board';
 import GameSetup from './components/GameSetup';
 import GameControls from './components/GameControls';
-import './App.css';
+import './App.css'; // Ensure your App.css has layout styles
 
 const BOARD_CONFIG = { H_GRID_CELLS: 15, V_GRID_CELLS: 5, TOTAL_SQUARES: 36 };
 const initialPlayersData = [
-  { id: 1, name: 'Team 1', color: 'var(--player-1-color, #3498db)', pos: 1 },
-  { id: 2, name: 'Team 2', color: 'var(--player-2-color, #e74c3c)', pos: 1 },
+  { id: 1, name: 'Team 1', color: 'var(--player-1-color, #0096FF)', pos: 1 }, // Brighter colors for dark theme
+  { id: 2, name: 'Team 2', color: 'var(--player-2-color, #FF3131)', pos: 1 },
 ];
 const CONSEQUENCE_MOVE_ANIMATION_DURATION = 700;
 
@@ -22,11 +22,6 @@ function App() {
   const [eslQuestions, setEslQuestions] = useState([]);
   const [gameSettings, setGameSettings] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
-
-  // Unified state for what's displayed in the board's center
-  // type: 'placeholder', 'question', 'consequence'
-  // content: data for the type (e.g., question object, consequence object, or placeholder text)
-  // playerName: relevant player's name for the display
   const [boardCenterDisplay, setBoardCenterDisplay] = useState({ type: 'placeholder', content: "Loading game..." });
 
   const handleQuestionsAndSettingsReady = (fetchedQuestions, settings) => {
@@ -36,12 +31,12 @@ function App() {
     setActivePlayerId(1);
     setCurrentDiceRollValue(null);
     setQuestionIndex(0);
-    setBoardCenterDisplay({ type: 'placeholder', content: "Team 1, Roll the dice!" }); // Initial placeholder for Player 1
+    const firstPlayerName = initialPlayersData.find(p => p.id === 1)?.name || 'Team 1';
+    setBoardCenterDisplay({ type: 'placeholder', content: `${firstPlayerName}, Roll the dice!` });
     setGamePhase('rolling');
     console.log("[App.jsx] Setup complete. Phase: 'rolling'.");
   };
 
-  // Effect to set up the question when it's 'questioning' phase
   useEffect(() => {
     const activePlayer = players.find(p => p.id === activePlayerId);
     if (gamePhase === 'questioning' && eslQuestions.length > 0 && activePlayer) {
@@ -55,7 +50,7 @@ function App() {
       if (question) {
         setBoardCenterDisplay({
           type: 'question',
-          content: question, // The full question object
+          content: question,
           playerName: activePlayer.name
         });
         console.log(`[App.jsx] Displaying question #${qIndexToShow + 1} for ${activePlayer.name}`);
@@ -64,17 +59,17 @@ function App() {
         setBoardCenterDisplay({ type: 'placeholder', content: "Error loading question.", playerName: activePlayer.name });
       }
     }
-  }, [gamePhase, activePlayerId, eslQuestions, questionIndex, players]); // players dependency for activePlayer.name
+    // This useEffect does not clear boardCenterDisplay if not 'questioning',
+    // allowing consequence to persist. Clearing happens in handleRollDice.
+  }, [gamePhase, activePlayerId, eslQuestions, questionIndex, players]);
 
 
   const handleRollDice = useCallback(() => {
     if (gamePhase !== 'rolling') return;
-
     const activePlayer = players.find(p => p.id === activePlayerId);
     console.log(`[App.jsx] ${activePlayer?.name || `Team ${activePlayerId}`} rolling dice.`);
     
-    // Set placeholder for the rolling player
-    setBoardCenterDisplay({ type: 'placeholder', content: `Rolling for ${activePlayer?.name}...`, playerName: activePlayer?.name });
+    setBoardCenterDisplay({ type: 'placeholder', content: `Rolling for ${activePlayer?.name}...` });
     
     setGamePhase('diceMoving');
     const rollValue = Math.floor(Math.random() * 6) + 1;
@@ -95,35 +90,32 @@ function App() {
         })
       );
       console.log(`[App.jsx] Dice move complete for ${activePlayer?.name}. Phase: 'questioning'.`);
-      setGamePhase('questioning'); // This will trigger the useEffect to display the question
-    }, 700); // Dice move animation delay
-  }, [activePlayerId, gamePhase, players]); // Added players for activePlayer.name in placeholder
+      setGamePhase('questioning');
+    }, 700);
+  }, [activePlayerId, gamePhase, players]);
 
 
-  // Called by MultipleChoiceQuestion when an answer option button is clicked
   const handleAnswerSelect = (selectedOption) => {
     if (gamePhase !== 'questioning' || !selectedOption || !boardCenterDisplay || boardCenterDisplay.type !== 'question') return;
 
-    const playerNameWhoAnswered = boardCenterDisplay.forPlayerName; // Name of player who answered
+    const playerNameWhoAnswered = boardCenterDisplay.playerName;
     console.log(`[App.jsx] ${playerNameWhoAnswered} selected: "${selectedOption.optionText}".`);
     
-    // Update board center to show consequence
     setBoardCenterDisplay({
         type: 'consequence',
-        content: { // Store only what's needed for consequence display
+        content: {
             consequenceText: selectedOption.consequenceText,
             move: selectedOption.move
         },
-        forPlayerName: playerNameWhoAnswered // Consequence is for the player who answered
+        forPlayerName: playerNameWhoAnswered
     });
     setGamePhase('consequenceMoving');
 
-    // Apply movement after a short delay (this is the "consequence move animation" time)
     setTimeout(() => {
       console.log(`[App.jsx] Applying consequence move: ${selectedOption.move} for ${playerNameWhoAnswered}.`);
       setPlayers(prevPlayers =>
         prevPlayers.map(p => {
-          if (p.id === activePlayerId) { // The activePlayerId is still the one who answered
+          if (p.id === activePlayerId) {
             let newPos = p.pos + selectedOption.move;
             if (newPos > BOARD_CONFIG.TOTAL_SQUARES) newPos = BOARD_CONFIG.TOTAL_SQUARES;
             else if (newPos < 1) newPos = 1;
@@ -133,18 +125,16 @@ function App() {
         })
       );
 
-      // After move, prepare for next player. The consequence display remains.
       const nextPlayerId = activePlayerId === 1 ? 2 : 1;
       const nextPlayer = players.find(p => p.id === nextPlayerId);
-
       setActivePlayerId(nextPlayerId);
       setCurrentDiceRollValue(null);
       setQuestionIndex(prev => prev + 1);
-      // `boardCenterDisplay` STILL SHOWS THE CONSEQUENCE of the previous player.
-      // It will be cleared when the *new* activePlayerId rolls the dice (in handleRollDice).
+      // `boardCenterDisplay` (showing consequence) is NOT cleared here.
+      // It gets cleared by the next player's `handleRollDice`.
       setGamePhase('rolling');
-      console.log(`[App.jsx] Turn ended for ${playerNameWhoAnswered}. Next player: ${nextPlayer?.name || `Team ${nextPlayerId}`}. Phase: 'rolling'. Previous consequence remains visible.`);
-    }, CONSEQUENCE_MOVE_ANIMATION_DURATION);
+      console.log(`[App.jsx] Turn ended for ${playerNameWhoAnswered}. Next player: ${nextPlayer?.name}. Phase: 'rolling'. Previous consequence remains.`);
+    }, CONSEQUENCE_MOVE_ANIMATION_DURATION); // Use this constant
   };
 
 
@@ -153,6 +143,13 @@ function App() {
   }
 
   const activePlayerForControls = players.find(p => p.id === activePlayerId);
+  
+  // Determine playerName for boardCenterContent.
+  // If showing consequence, it's for the player who just answered (which is still activePlayerId at that point).
+  // If showing question, it's for the current activePlayerId.
+  // If placeholder, it's for the current activePlayerId.
+  const playerNameForBoardCenter = boardCenterDisplay?.playerName || activePlayerForControls?.name || '';
+
 
   return (
     <div className="esl-game-app-layout">
@@ -163,9 +160,8 @@ function App() {
             teamName={player.name}
             color={player.color}
             isActive={player.id === activePlayerId && 
-                        (gamePhase === 'rolling' || gamePhase === 'questioning' || gamePhase === 'diceMoving')}
-                        // Highlight active player unless their consequence is being shown for previous turn
-                        // Or more simply, always highlight current activePlayerId unless in setup/gameOver
+                        (gamePhase === 'rolling' || gamePhase === 'questioning' || gamePhase === 'diceMoving' || gamePhase === 'consequenceMoving')}
+                        // Player remains "active" visually through most of their turn phases
           />
         ))}
       </div>
@@ -174,11 +170,11 @@ function App() {
         <Board
           players={players}
           config={BOARD_CONFIG}
-          boardCenterContent={boardCenterDisplay} // Pass the unified content object
+          boardCenterContent={boardCenterDisplay}
           onAnswerSelect={handleAnswerSelect}
-          // Disable MCQ options if board center is not showing a question
-          // or if the game is not in the 'questioning' phase.
-          disableOptions={!boardCenterDisplay || boardCenterDisplay.type !== 'question' || gamePhase !== 'questioning'}
+          disableOptions={gamePhase !== 'questioning'} // Options only enabled during 'questioning'
+          activePlayerId={activePlayerId} // Pass for token glow
+          gamePhaseForGlow={gamePhase}   // Pass for token glow
         />
       </div>
 

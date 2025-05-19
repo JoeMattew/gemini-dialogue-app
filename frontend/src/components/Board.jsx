@@ -1,11 +1,11 @@
 // frontend/src/components/Board.jsx
 import React from 'react';
 import Square from './Square';
-import MultipleChoiceQuestion from './MultipleChoiceQuestion';
+import MultipleChoiceQuestion from './MultipleChoiceQuestion'; // Assuming this is your MCQ component
 import './Board.css';
 
-// getSquareStyle function remains the same
-const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => { /* ... as before ... */
+// getSquareStyle function remains the same (36-square, 15x5 grid version)
+const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => {
   let r, c;
   const top_end_id = H_GRID_CELLS;
   const right_side_length = V_GRID_CELLS - 1;
@@ -23,13 +23,14 @@ const getSquareStyle = (squareId, H_GRID_CELLS, V_GRID_CELLS) => { /* ... as bef
 const Board = ({
   players,
   config,
-  boardCenterContent, // { type: 'placeholder'|'question'|'consequence', content: any, playerName: string }
+  boardCenterContent,
   onAnswerSelect,
-  disableOptions
+  disableOptions,
+  activePlayerId,     // Current active player's ID
+  gamePhaseForGlow    // Current gamePhase
 }) => {
   const squaresCmp = [];
   for (let i = 1; i <= config.TOTAL_SQUARES; i++) {
-    // ... (square generation logic remains the same) ...
     const style = getSquareStyle(i, config.H_GRID_CELLS, config.V_GRID_CELLS);
     let type = '';
     if (i === 1) type = 'go';
@@ -39,55 +40,84 @@ const Board = ({
       type = 'corner';
     }
     if (i===1) type = 'go';
+
     squaresCmp.push(
       <Square key={i} id={i} style={style} type={type}>
-        {players.map(p => p.pos === i && (
-          <div key={p.id} className="player-token-gfx" style={{ backgroundColor: p.color }} title={p.name}>
-            {p.id}
-          </div>
-        ))}
+        {players.map(p => {
+          // Determine if THIS player's token (p.id) should glow
+          const isThisPlayerTokenActive = p.id === activePlayerId &&
+            (gamePhaseForGlow === 'rolling' ||
+             gamePhaseForGlow === 'diceMoving' ||
+             gamePhaseForGlow === 'questioning' ||
+             gamePhaseForGlow === 'consequenceMoving' ||
+             gamePhaseForGlow === 'showingConsequence'); // Glow during these active phases for the player
+
+          return p.pos === i && ( // If player p is on this square i
+            <div
+              key={p.id}
+              className={`player-token-gfx ${isThisPlayerTokenActive ? 'glowing' : ''}`}
+              style={{ 
+                backgroundColor: p.color,
+                // Set CSS variable for token glow color, used by the .glowing animation
+                ...(isThisPlayerTokenActive && { '--token-glow-color': p.color }) 
+              }}
+              title={p.name}
+            >
+              {p.id}
+            </div>
+          );
+        })}
       </Square>
     );
   }
 
-  let displayContent = (
-    <div className="mcq-area-game placeholder-mcq">
-      <p>{boardCenterContent?.content || "Roll the dice!"}</p> {/* Default placeholder */}
-    </div>
-  );
-
+  // --- Logic for what to display in the center of the board ---
+  let displayInCenter;
   if (boardCenterContent) {
-    if (boardCenterContent.type === 'question' && boardCenterContent.content) {
-      displayContent = (
+    const { type, content, playerName } = boardCenterContent;
+    if (type === 'question' && content) {
+      displayInCenter = (
         <MultipleChoiceQuestion
-          questionObj={boardCenterContent.content}
-          playerName={boardCenterContent.playerName}
+          questionObj={content}
+          playerName={playerName}
           onAnswerSelect={onAnswerSelect}
-          disableOptions={disableOptions}
-          isDisplayingConsequence={false} // Not displaying consequence when it's a question
+          disableOptions={disableOptions} // Pass this down
+          isDisplayingConsequence={false}
           consequenceToShow={null}
         />
       );
-    } else if (boardCenterContent.type === 'consequence' && boardCenterContent.content) {
-      displayContent = (
+    } else if (type === 'consequence' && content) {
+      displayInCenter = (
         <MultipleChoiceQuestion
-          questionObj={null} // No question, just consequence
-          playerName={boardCenterContent.playerName} // Player who answere
-          onAnswerSelect={() => {}} // No action needed from MCQ in this mode
+          questionObj={null}
+          playerName={playerName}
+          onAnswerSelect={() => {}} // No action needed from MCQ when just displaying consequence
           isDisplayingConsequence={true}
-          consequenceToShow={boardCenterContent.content} // { consequenceText, move }
-          disableOptions={true} // Options are irrelevant here
+          consequenceToShow={content}
+          disableOptions={true} // Options are irrelevant when showing consequence
         />
       );
-    } else if (boardCenterContent.type === 'placeholder') {
-        displayContent = (
+    } else if (type === 'placeholder') {
+        displayInCenter = (
             <div className="mcq-area-game placeholder-mcq">
-                <p>{boardCenterContent.content || "Roll the dice!"}</p>
+                <p>{content || "Roll the dice!"}</p>
+            </div>
+        );
+    } else { 
+        displayInCenter = (
+            <div className="mcq-area-game placeholder-mcq">
+                <p>Next action...</p>
             </div>
         );
     }
+  } else { 
+    displayInCenter = (
+        <div className="mcq-area-game placeholder-mcq">
+            <p>Roll the dice!</p>
+        </div>
+    );
   }
-
+  // --- End logic for board center display ---
 
   return (
     <div className="board-area-container">
@@ -100,7 +130,7 @@ const Board = ({
       >
         {squaresCmp}
         <div className="board-center-content-area">
-          {displayContent}
+          {displayInCenter}
         </div>
       </div>
     </div>
